@@ -95,8 +95,8 @@ impl ConsoleChar {
 struct Console(ConsoleColor, ConsoleColor);
 
 impl Console {
-    fn set_char(&self, pos: usize, character: u8) {
-        self.set_console_char(pos, ConsoleChar::new(character, self.0, self.1)).unwrap_or(())
+    fn set_char(&self, pos: usize, character: u8) -> Result<(), &'static str> {
+        self.set_console_char(pos, ConsoleChar::new(character, self.0, self.1))
     }
 
     fn set_console_char(&self, pos: usize, character: ConsoleChar) -> Result<(), &'static str> {
@@ -114,7 +114,7 @@ impl Console {
 
     fn print(&self, msg: &[u8], pos: usize) {
         for (i, ch) in msg.iter().enumerate() {
-            self.set_char(i + pos, *ch);
+            self.set_char(i + pos, *ch).unwrap_or(());
         }
     }
 }
