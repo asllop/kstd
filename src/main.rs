@@ -12,8 +12,13 @@ fn panic(_info: &PanicInfo) -> ! {
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    print_message(b"-- Rust Kernel Test --");
+    print_title(b"-- Rust Kernel Test --");
     loop {}
+}
+
+fn print_title(msg: &[u8]) {
+    let center_offs = 40 - msg.len() / 2;
+    CONSOLE.print(msg, center_offs);
 }
 
 #[derive(Copy, Clone)]
@@ -106,13 +111,12 @@ impl Console {
             Err("Position out of bounds")
         }
     }
+
+    fn print(&self, msg: &[u8], pos: usize) {
+        for (i, ch) in msg.iter().enumerate() {
+            CONSOLE.set_char(i + pos, *ch);
+        }
+    }
 }
 
 static CONSOLE : Console = Console(ConsoleColor::White, ConsoleColor::Red);
-
-fn print_message(msg: &[u8]) {
-    let center_offs = 40 - msg.len() / 2;
-    for (i, ch) in msg.iter().enumerate() {
-        CONSOLE.set_char(i + center_offs, *ch);
-    }
-}
