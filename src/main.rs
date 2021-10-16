@@ -114,7 +114,7 @@ impl Console {
 
     fn print(&self, msg: &[u8], pos: usize) {
         for (i, ch) in msg.iter().enumerate() {
-            CONSOLE.set_char(i + pos, *ch);
+            self.set_char(i + pos, *ch);
         }
     }
 }
