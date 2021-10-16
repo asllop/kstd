@@ -2,7 +2,7 @@
 #![no_main]
 
 use core::panic::PanicInfo;
-use core::convert::TryFrom;
+use core::convert::From;
 
 /// This function is called on panic.
 #[panic_handler]
@@ -41,28 +41,26 @@ enum ConsoleColor {
     White
 }
 
-impl TryFrom<u8> for ConsoleColor {
-    type Error = &'static str;
-
-    fn try_from(value: u8) -> Result<Self, Self::Error> {
-        match value {
-            0 => Ok(ConsoleColor::Black),
-            1 => Ok(ConsoleColor::Blue),
-            2 => Ok(ConsoleColor::Green),
-            3 => Ok(ConsoleColor::Cyan),
-            4 => Ok(ConsoleColor::Red),
-            5 => Ok(ConsoleColor::Purple),
-            6 => Ok(ConsoleColor::Brown),
-            7 => Ok(ConsoleColor::Gray),
-            8 => Ok(ConsoleColor::DarkGray),
-            9 => Ok(ConsoleColor::LightBlue),
-            10 => Ok(ConsoleColor::LightGreen),
-            11 => Ok(ConsoleColor::LightCyan),
-            12 => Ok(ConsoleColor::LightRed),
-            13 => Ok(ConsoleColor::LightPurple),
-            14 => Ok(ConsoleColor::Yellow),
-            15 => Ok(ConsoleColor::White),
-            _ => Err("Invalid color num")
+impl From<u8> for ConsoleColor {
+    fn from(value: u8) -> Self {
+        match value & 0xF {
+            0 => ConsoleColor::Black,
+            1 => ConsoleColor::Blue,
+            2 => ConsoleColor::Green,
+            3 => ConsoleColor::Cyan,
+            4 => ConsoleColor::Red,
+            5 => ConsoleColor::Purple,
+            6 => ConsoleColor::Brown,
+            7 => ConsoleColor::Gray,
+            8 => ConsoleColor::DarkGray,
+            9 => ConsoleColor::LightBlue,
+            10 => ConsoleColor::LightGreen,
+            11 => ConsoleColor::LightCyan,
+            12 => ConsoleColor::LightRed,
+            13 => ConsoleColor::LightPurple,
+            14 => ConsoleColor::Yellow,
+            15 => ConsoleColor::White,
+            _ => ConsoleColor::Black
         }
     }
 }
@@ -95,11 +93,11 @@ impl ConsoleChar {
 struct Console(ConsoleColor, ConsoleColor);
 
 impl Console {
-    fn set_char(&self, pos: usize, character: u8) -> Result<(), &'static str> {
+    pub fn set_char(&self, pos: usize, character: u8) -> Result<(), &'static str> {
         self.set_console_char(pos, ConsoleChar::new(character, self.0, self.1))
     }
 
-    fn set_console_char(&self, pos: usize, character: ConsoleChar) -> Result<(), &'static str> {
+    pub fn set_console_char(&self, pos: usize, character: ConsoleChar) -> Result<(), &'static str> {
         if pos < 2000 {
             unsafe {
                 *((0xB8000 + pos * 2) as *mut u8) = character.get_char();
@@ -112,7 +110,7 @@ impl Console {
         }
     }
 
-    fn print(&self, msg: &[u8], pos: usize) {
+    pub fn print(&self, msg: &[u8], pos: usize) {
         for (i, ch) in msg.iter().enumerate() {
             self.set_char(i + pos, *ch).unwrap_or(());
         }
