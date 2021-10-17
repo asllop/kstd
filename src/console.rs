@@ -1,6 +1,16 @@
-use core::convert::From;
-use core::ops::Shl;
+use core::{
+    convert::From,
+    ops::Shl,
+    fmt::{
+        Write,
+        Error
+    }
+};
 
+/// Console driver
+pub static CONSOLE : Console = Console(ConsoleColor::White, ConsoleColor::Red);
+
+/// Define a color
 #[derive(Copy, Clone)]
 pub enum ConsoleColor {
     Black = 0,
@@ -45,6 +55,7 @@ impl From<u8> for ConsoleColor {
     }
 }
 
+/// Define a console char with its properties.
 pub struct ConsoleChar {
     character: u8,
     color: ConsoleColor,
@@ -113,4 +124,62 @@ impl Shl<(usize, usize, &str)> for &Console {
     }
 }
 
-pub static CONSOLE : Console = Console(ConsoleColor::White, ConsoleColor::Red);
+pub struct ConsoleWriter {
+    console: &'static Console,
+    x: usize,
+    y: usize
+}
+
+impl ConsoleWriter {
+    pub fn new() -> Self {
+        Self {
+            console: &CONSOLE,
+            x: 0,
+            y: 0
+        }
+    }
+
+    pub fn pos(&self) -> usize {
+        80 * self.y + self.x
+    }
+
+    pub fn inc_pos(&mut self) {
+        self.x += 1;
+        if self.x >= 80 {
+            self.x = 0;
+            self.y += 1;
+        }
+        if self.y >= 25 {
+            self.y = 0;
+        }
+        if self.pos() >= 80*25 {
+            self.x = 0;
+            self.y = 0;
+        }
+    }
+
+    pub fn line_break(&mut self) {
+        self.y += 1;
+        self.x = 0;
+        if self.pos() >= 80*25 {
+            self.x = 0;
+            self.y = 0;
+        }
+    }
+}
+
+impl Write for ConsoleWriter {
+    fn write_str(&mut self, s: &str) -> Result<(), Error> {
+        for ch in s.as_bytes() {
+            // line break
+            if *ch == 0x0Au8 {
+                self.line_break();
+            }
+            else {
+                self.console.set_char(self.pos(), *ch).unwrap_or(());
+                self.inc_pos();
+            }
+        }
+        Ok(())
+    }
+}
