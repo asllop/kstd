@@ -16,7 +16,7 @@ fn panic(_info: &PanicInfo) -> ! {
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
     print_title("-- Rust Kernel Test --");
-    let mut out = ConsoleWriter::new();
+    let mut out = ConsoleWriter::new(&CONSOLE);
     print_count(&mut out);
     loop {}
 }

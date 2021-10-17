@@ -131,9 +131,9 @@ pub struct ConsoleWriter {
 }
 
 impl ConsoleWriter {
-    pub fn new() -> Self {
+    pub fn new(console: &'static Console) -> Self {
         Self {
-            console: &CONSOLE,
+            console,
             x: 0,
             y: 0
         }
