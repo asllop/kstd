@@ -124,14 +124,14 @@ impl Shl<(usize, usize, &str)> for &Console {
     }
 }
 
-pub struct ConsoleWriter {
-    console: &'static Console,
+pub struct ConsoleWriter<'a> {
+    console: &'a Console,
     x: usize,
     y: usize
 }
 
-impl ConsoleWriter {
-    pub fn new(console: &'static Console) -> Self {
+impl<'a> ConsoleWriter<'a> {
+    pub fn new(console: &'a Console) -> Self {
         Self {
             console,
             x: 0,
@@ -168,7 +168,7 @@ impl ConsoleWriter {
     }
 }
 
-impl Write for ConsoleWriter {
+impl<'a> Write for ConsoleWriter<'a> {
     fn write_str(&mut self, s: &str) -> Result<(), Error> {
         for ch in s.as_bytes() {
             // line break
