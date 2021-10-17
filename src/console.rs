@@ -152,10 +152,6 @@ impl<'a> ConsoleWriter<'a> {
         if self.y >= 25 {
             self.y = 0;
         }
-        if self.pos() >= 80*25 {
-            self.x = 0;
-            self.y = 0;
-        }
     }
 
     pub fn line_break(&mut self) {
