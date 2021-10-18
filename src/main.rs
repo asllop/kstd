@@ -24,13 +24,20 @@ pub extern "C" fn _start() -> ! {
     loop {}
 }
 
+// Experimental console usage
 fn print_title(msg: &str) {
     let center = 40 - msg.len() / 2;
-    &CONSOLE << (center, 12, msg);
+
+    let console = unsafe { CONSOLE_WRITER.console() };
+    console << (center, 12, msg);
+
+    let console = Console::new(ConsoleColor::Black, ConsoleColor::Yellow);
+    &console << (center, 13, msg);
 }
 
+// Regular console usage
 fn print_count() {
     for i in 0..30 {
-        print!("Counter {}\n", i);
+        println!("Counter {}", i);
     }
 }

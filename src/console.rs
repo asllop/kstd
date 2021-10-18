@@ -10,19 +10,19 @@ use core::{
 #[macro_export]
 macro_rules! print {
     ($($arg:tt)*) => ({
-        unsafe {
-            core::fmt::write(&mut CONSOLE_WRITER, format_args!(
-                $($arg)*)
-            ).unwrap();
-        }
+        crate::console::console_print(format_args!($($arg)*));
     })
 }
 
-/// Hardware access
-pub static CONSOLE : Console = Console(ConsoleColor::White, ConsoleColor::Red);
-/// Buffer and position control
+#[macro_export]
+macro_rules! println {
+    () => (print!("\n"));
+    ($($arg:tt)*) => (print!("{}\n", format_args!($($arg)*)));
+}
+
+/// Console Driver
 pub static mut CONSOLE_WRITER : ConsoleWriter = ConsoleWriter {
-    console: &CONSOLE,
+    console: Console(ConsoleColor::White, ConsoleColor::Red),
     x: 0,
     y: 0
 };
@@ -101,6 +101,10 @@ impl ConsoleChar {
 pub struct Console(ConsoleColor, ConsoleColor);
 
 impl Console {
+    pub fn new(fg_color: ConsoleColor, bg_color: ConsoleColor) -> Self {
+        Self(fg_color, bg_color)
+    }
+
     pub fn set_char(&self, pos: usize, character: u8) -> Result<(), &'static str> {
         self.set_console_char(pos, ConsoleChar::new(character, self.0, self.1))
     }
@@ -141,21 +145,13 @@ impl Shl<(usize, usize, &str)> for &Console {
     }
 }
 
-pub struct ConsoleWriter<'a> {
-    console: &'a Console,
+pub struct ConsoleWriter {
+    console: Console,
     x: usize,
     y: usize
 }
 
-impl<'a> ConsoleWriter<'a> {
-    pub fn new(console: &'a Console) -> Self {
-        Self {
-            console,
-            x: 0,
-            y: 0
-        }
-    }
-
+impl ConsoleWriter {
     pub fn pos(&self) -> usize {
         80 * self.y + self.x
     }
@@ -179,10 +175,15 @@ impl<'a> ConsoleWriter<'a> {
             self.y = 0;
         }
     }
+
+    pub fn console(&self) -> &Console {
+        &self.console
+    }
 }
 
-impl<'a> Write for ConsoleWriter<'a> {
-    //TODO: scroll all lines up when a new line happens
+//TODO: create a buffer and scroll all lines up when a new line happens
+
+impl Write for ConsoleWriter {
     fn write_str(&mut self, s: &str) -> Result<(), Error> {
         for ch in s.as_bytes() {
             // line break
@@ -196,4 +197,9 @@ impl<'a> Write for ConsoleWriter<'a> {
         }
         Ok(())
     }
+}
+
+pub fn console_print(args: core::fmt::Arguments<'_>) {
+    //TODO: adquire mutex on CONSOLE_WRITER
+    unsafe { core::fmt::write(&mut CONSOLE_WRITER, args).unwrap_or(()); }
 }
