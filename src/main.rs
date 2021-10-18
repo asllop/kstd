@@ -11,6 +11,9 @@ use console::*;
 mod counter_future;
 use counter_future::*;
 
+use core::sync::atomic::Ordering;
+use core::sync::atomic::AtomicI32;
+
 /// This function is called on panic.
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
@@ -21,6 +24,9 @@ fn panic(_info: &PanicInfo) -> ! {
 pub extern "C" fn _start() -> ! {
     print_title("-- Rust Kernel Test --");
     print_count();
+    println!("MT my_val {}", MT.my_val.load(Ordering::SeqCst));
+    MT.my_val.store(100, Ordering::SeqCst);
+    println!("After change, MT my_val {}", MT.my_val.load(Ordering::SeqCst));
     loop {}
 }
 
@@ -37,7 +43,8 @@ fn print_title(msg: &str) {
 
 // Regular console usage
 fn print_count() {
-    for i in 0..30 {
+    for i in 0..10 {
         println!("Counter {}", i);
     }
+    println!();
 }

@@ -7,6 +7,14 @@ use core::{
     }
 };
 
+use core::sync::atomic::AtomicI32;
+
+pub struct MutableThing {
+    pub my_val: AtomicI32
+}
+
+pub static MT : MutableThing =  MutableThing { my_val: AtomicI32::new(666) };
+
 #[macro_export]
 macro_rules! print {
     ($($arg:tt)*) => ({
@@ -19,6 +27,8 @@ macro_rules! println {
     () => (print!("\n"));
     ($($arg:tt)*) => (print!("{}\n", format_args!($($arg)*)));
 }
+
+//TODO: make immutable static and use atomic primitives for interior mutability.
 
 /// Console Driver
 pub static mut CONSOLE_WRITER : ConsoleWriter = ConsoleWriter {
