@@ -32,7 +32,10 @@ macro_rules! println {
 
 /// Console Driver
 pub static mut CONSOLE_WRITER : ConsoleWriter = ConsoleWriter {
-    console: Console(ConsoleColor::White, ConsoleColor::Red),
+    console: Console(ColorScheme {
+        foreground: ConsoleColor::White,
+        background: ConsoleColor::Red
+    }),
     x: 0,
     y: 0
 };
@@ -82,19 +85,45 @@ impl From<u8> for ConsoleColor {
     }
 }
 
+#[derive(Copy, Clone)]
+pub struct ColorScheme {
+    foreground: ConsoleColor,
+    background: ConsoleColor
+}
+
+impl ColorScheme {
+    pub fn new(foreground: ConsoleColor, background: ConsoleColor) -> Self {
+        Self {
+            foreground,
+            background
+        }
+    }
+
+    pub fn fg(&self) -> ConsoleColor { self.foreground }
+
+    pub fn bg(&self) -> ConsoleColor { self.background }
+}
+
+impl core::default::Default for ColorScheme {
+    fn default() -> Self {
+        Self {
+            foreground: ConsoleColor::Gray,
+            background: ConsoleColor::Black
+        }
+    }
+}
+
 /// Define a console char with its properties.
 pub struct ConsoleChar {
     character: u8,
-    color: ConsoleColor,
-    bg_color: ConsoleColor
+    color: ColorScheme
 }
 
 impl ConsoleChar {
-    pub fn new(character: u8, color: ConsoleColor, bg_color: ConsoleColor) -> Self {
+    pub fn new(character: u8, color: ColorScheme) -> Self {
         Self {
             character,
-            color,
-            bg_color
+            color
         }
     }
 
@@ -103,20 +132,20 @@ impl ConsoleChar {
     }
 
     pub fn get_color(&self) -> u8 {
-        ((self.bg_color as u8) << 4) | (self.color as u8)
+        ((self.color.bg() as u8) << 4) | (self.color.fg() as u8)
     }
 }
 
 /// Console struct with default colors for foreground and background
-pub struct Console(ConsoleColor, ConsoleColor);
+pub struct Console(ColorScheme);
 
 impl Console {
-    pub fn new(fg_color: ConsoleColor, bg_color: ConsoleColor) -> Self {
-        Self(fg_color, bg_color)
+    pub fn new(color: ColorScheme) -> Self {
+        Self(color)
     }
 
     pub fn set_char(&self, pos: usize, character: u8) -> Result<(), &'static str> {
-        self.set_console_char(pos, ConsoleChar::new(character, self.0, self.1))
+        self.set_console_char(pos, ConsoleChar::new(character, self.0))
     }
 
     pub fn set_console_char(&self, pos: usize, character: ConsoleChar) -> Result<(), &'static str> {
@@ -133,11 +162,13 @@ impl Console {
     }
 }
 
-/// Using shl as an "arrow", instead of an actual shift operator.
-/// Clearly not satisfying the intended usage, but it's cool being able to do something like:
+/// Using shl as a "send message" operator, instead of an actual shift.
+/// 
+/// Clearly not satisfying the intended usage of this trait, but it's cool being able to do something like:
 /// 
 /// ```
-/// &CONSOLE << (37, 12, "Hello!");
+/// let console = Console::new(ConsoleColor::Green, ConsoleColor::Black);
+/// &console << (37, 12, "Hello!");
 /// ```
 impl Shl<(usize, usize, &str)> for &Console {
     type Output = ();
@@ -155,6 +186,12 @@ impl Shl<(usize, usize, &str)> for &Console {
     }
 }
 
+/*
+TODO:
+- Create a virtual console, with an arbitrary size and a position in the real console.
+- When we write to the console, we update first the internal buffer, and then the real video memory.
+- When a scroll happens (by new line), we rewrite the whole buffer.
+*/
 pub struct ConsoleWriter {
     console: Console,
     x: usize,

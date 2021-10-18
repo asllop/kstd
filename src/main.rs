@@ -68,9 +68,9 @@ fn print_title(msg: &str) {
     let center = 40 - msg.len() / 2;
 
     let console = unsafe { CONSOLE_WRITER.console() };
-    console << (center, 12, msg);
+    console << (center, 11, msg);
 
-    let console = Console::new(ConsoleColor::Black, ConsoleColor::Yellow);
+    let console = Console::new(ColorScheme::default());
     &console << (center, 13, msg);
 }
 
