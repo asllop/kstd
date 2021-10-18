@@ -7,8 +7,25 @@ use core::{
     }
 };
 
-/// Console driver
+#[macro_export]
+macro_rules! print {
+    ($($arg:tt)*) => ({
+        unsafe {
+            core::fmt::write(&mut CONSOLE_WRITER, format_args!(
+                $($arg)*)
+            ).unwrap();
+        }
+    })
+}
+
+/// Hardware access
 pub static CONSOLE : Console = Console(ConsoleColor::White, ConsoleColor::Red);
+/// Buffer and position control
+pub static mut CONSOLE_WRITER : ConsoleWriter = ConsoleWriter {
+    console: &CONSOLE,
+    x: 0,
+    y: 0
+};
 
 /// Define a color
 #[derive(Copy, Clone)]
@@ -165,6 +182,7 @@ impl<'a> ConsoleWriter<'a> {
 }
 
 impl<'a> Write for ConsoleWriter<'a> {
+    //TODO: scroll all lines up when a new line happens
     fn write_str(&mut self, s: &str) -> Result<(), Error> {
         for ch in s.as_bytes() {
             // line break
