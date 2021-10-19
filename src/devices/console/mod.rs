@@ -8,6 +8,8 @@ use super::{
     InputFlow, OutputFlow
 };
 
+use crate::sys::KMutex;
+
 /**********************
  * Arch Independant
  **********************/
@@ -81,7 +83,7 @@ type Empty = u8;
 pub struct ConsoleDevice(PhantomData<Empty>);
 
 /// Public Console Device Interface
-pub static CON_DEVICE : ConsoleDevice = ConsoleDevice(PhantomData);
+pub static CON_DEVICE : KMutex<ConsoleDevice> = KMutex::new(ConsoleDevice(PhantomData));
 
 //TODO: put each arch dependant ConsoleDevice implementation into a different file and compile conditionally
 

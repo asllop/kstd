@@ -93,7 +93,7 @@ pub extern "C" fn _start() -> ! {
     MT.my_val.store(100, Ordering::SeqCst);
     println!("After change, MT my_val {}", MT.my_val.load(Ordering::SeqCst));
 
-    CON_DEVICE.write_cmd(
+    CON_DEVICE.lock().write_cmd(
         ConCmd::Print(10, 24, AnsiColor::BrightRed, AnsiColor::BrightCyan),
         "Final thing!".as_bytes()
     ).unwrap_or_default();
