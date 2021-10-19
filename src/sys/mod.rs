@@ -1,14 +1,15 @@
 use core::{
     sync::atomic::{
-        AtomicBool, Ordering
+        AtomicUsize, Ordering
     },
     cell::UnsafeCell,
     ops::{Drop, Deref, DerefMut}
 };
 
-/// Simple spinlock mutex.
+/// Kernel mutex with queuing.
 pub struct KMutex<T> {
-    is_locked: AtomicBool,
+    queue_num: AtomicUsize,
+    current_num: AtomicUsize,
     host: UnsafeCell<T>
 }
 
@@ -18,34 +19,29 @@ impl<T> KMutex<T> {
     /// Create new mutex.
     pub const fn new(host: T) -> Self {
         Self {
-            is_locked: AtomicBool::new(false),
+            queue_num: AtomicUsize::new(0),
+            current_num: AtomicUsize::new(0),
             host: UnsafeCell::new(host)
         }
     }
 
-    /// Return a lock guard.
+    /// Return a lock.
     pub fn lock(&self) -> KLock<T> {
-        loop {
-            let res = self.is_locked.compare_exchange(
-                false,
-                true,
-                Ordering::SeqCst,
-                Ordering::Acquire
-            );
-
-            if let Ok(_) = res {
-                break;
-            }
+        let q_pos = self.queue_num.fetch_add(1, Ordering::SeqCst);
+        while self.current_num.load(Ordering::SeqCst) != q_pos {
+            //TODO: once task switching is implemented, force switch task here
         }
         KLock::new(self)
     }
 
     fn unlock(&self) {
-        self.is_locked.store(false, Ordering::SeqCst);
+        self.current_num.fetch_add(1, Ordering::SeqCst);
     }
 }
 
-/// Lock guard returned by [`KMutex`].
+/// Lock returned by [`KMutex::lock()`].
+/// 
+/// It's a smart pointer that gives access to inner type.
 pub struct KLock<'a, T> {
     mutex: &'a KMutex<T>
 }
@@ -68,6 +64,7 @@ impl<'a, T> Deref for KLock<'a, T> {
     }
 }
 
+//TODO: to have mutable ref we need an UnsafeCell on self.mutex ref, otherwise it is an immutable ref.
 /*
 impl<'a, T> DerefMut for KLock<'a, T> {
     fn deref_mut(&mut self) -> &mut Self::Target {

@@ -98,6 +98,11 @@ pub extern "C" fn _start() -> ! {
         "Final thing!".as_bytes()
     ).unwrap_or_default();
 
+    CON_DEVICE.lock().write_cmd(
+        ConCmd::Print(30, 24, AnsiColor::BrightRed, AnsiColor::BrightCyan),
+        "One more thing".as_bytes()
+    ).unwrap_or_default();
+
     println!("TEST lock count = {}", TEST.lock().count);
 
     loop {}
