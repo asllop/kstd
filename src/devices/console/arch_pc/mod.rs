@@ -1,13 +1,15 @@
 use core::{
-    convert::From,
-    fmt::Error
+    convert::From
 };
 
-use crate::devices::{
-    InputFlow,
-    console::{
-        AnsiColor, ConCmd, ConCmdResult, ConsoleDevice
-    }
+use crate::{
+    devices::{
+        InputFlow,
+        console::{
+            AnsiColor, ConCmd, ConCmdResult, ConsoleDevice
+        }
+    },
+    sys::Error
 };
 
 #[derive(Copy, Clone)]
@@ -119,7 +121,7 @@ impl InputFlow<()> for ConsoleDevice {
                 //TODO
                 Ok(ConCmdResult::default())
             },
-            _ => Err(Error)
+            _ => Err(Error::WrongCmd)
         }
     }
 }
@@ -143,10 +145,10 @@ impl InputFlow<u8> for ConsoleDevice {
                     Ok(ConCmdResult::default())
                 }
                 else {
-                    Err(Error)
+                    Err(Error::BufOutBounds)
                 }
             },
-            _ => Err(Error)
+            _ => Err(Error::WrongCmd)
         }
     }
 }
@@ -172,7 +174,7 @@ impl InputFlow<&[u8]> for ConsoleDevice {
                 }
                 Ok(ConCmdResult::default())
             },
-            _ => Err(Error)
+            _ => Err(Error::WrongCmd)
         }
     }
 }

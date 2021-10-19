@@ -8,7 +8,9 @@ use crate::{
             AnsiColor
         }
     },
-    sys::KMutex
+    sys::{
+        KMutex, Error
+    }
 };
 
 /// Console Commands
@@ -46,6 +48,21 @@ impl Default for ConCmdResult {
         Self::None
     }
 }
+
+// Why the cmd system is better than a static interface like the following?
+// With commands, one arch can give more features that are available to only that arch
+/*
+pub trait ConsoleDeviceInterface {
+    fn print(x: usize, y: usize, tex_color: AnsiColor, bg_color: AnsiColor, ascii: u8) -> Result<(), Error>;
+    fn print_array(x: usize, y: usize, tex_color: AnsiColor, bg_color: AnsiColor, ascii_str: &[u8]) -> Result<(), Error>;
+    fn read(x: usize, y: usize) -> Result<(u8, AnsiColor, AnsiColor), Error>;
+    fn set_cursor(x: usize, y: usize) -> Result<(), Error>;
+    fn get_cursor() -> Result<(usize, usize), Error>;
+    fn enable_cursor() -> Result<(), Error>;
+    fn disable_cursor() -> Result<(), Error>;
+    fn get_size() -> Result<(usize, usize), Error>;
+}
+*/
 
 type Empty = u8;
 

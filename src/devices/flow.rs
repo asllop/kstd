@@ -1,5 +1,5 @@
-use core::{
-    fmt::Error
+use crate::{
+    sys::Error
 };
 
 /// Input Flow trait. For writing data to a device.
