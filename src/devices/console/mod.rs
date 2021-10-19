@@ -156,8 +156,9 @@ impl From<u8> for VgaConsoleColor {
 /// For commands without data, like SetCursor and Enable/DisableCursor, we implement InputFlow with unit type.
 impl InputFlow<()> for ConsoleDevice {
     type Command = ConCmd;
+    type CmdResult = ();
 
-    fn write_cmd(&self, cmd: Self::Command, data: ()) -> Result<(), Error> {
+    fn write_cmd(&self, cmd: Self::Command, data: ()) -> Result<Self::CmdResult, Error> {
         match cmd {
             ConCmd::SetCursor(x, y) => {
                 //TODO
@@ -179,8 +180,9 @@ impl InputFlow<()> for ConsoleDevice {
 /// Print a single ASCII char
 impl InputFlow<u8> for ConsoleDevice {
     type Command = ConCmd;
+    type CmdResult = ();
 
-    fn write_cmd(&self, cmd: Self::Command, data: u8) -> Result<(), Error> {
+    fn write_cmd(&self, cmd: Self::Command, data: u8) -> Result<Self::CmdResult, Error> {
         match cmd {
             ConCmd::Print(x, y, text_color, bg_color) => {
                 let pos = 80 * y + x;
@@ -190,6 +192,7 @@ impl InputFlow<u8> for ConsoleDevice {
                         let color = ((VgaConsoleColor::from(bg_color) as u8) << 4) | (VgaConsoleColor::from(text_color) as u8);
                         *((0xB8000 + pos * 2 + 1) as *mut u8) = color;
                     }
+                    //TODO: move cursor to new location
                     Ok(())
                 }
                 else {
@@ -204,8 +207,9 @@ impl InputFlow<u8> for ConsoleDevice {
 /// Print an array of ASCII chars
 impl InputFlow<&[u8]> for ConsoleDevice {
     type Command = ConCmd;
+    type CmdResult = ();
 
-    fn write_cmd(&self, cmd: Self::Command, data: &[u8]) -> Result<(), Error> {
+    fn write_cmd(&self, cmd: Self::Command, data: &[u8]) -> Result<Self::CmdResult, Error> {
         match cmd {
             ConCmd::Print(mut x, mut y, text_color, bg_color) => {
                 for ch in data {

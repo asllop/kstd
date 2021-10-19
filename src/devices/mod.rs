@@ -6,8 +6,9 @@ use core::fmt::Error;
 /// Input Flow trait. For writing data to a device.
 pub trait InputFlow<T> {
     type Command;
+    type CmdResult;
 
-    fn write_cmd(&self, cmd: Self::Command, data: T) -> Result<(), Error>;
+    fn write_cmd(&self, cmd: Self::Command, data: T) -> Result<Self::CmdResult, Error>;
 }
 
 /// Output Flow trait. For reading data from a device.
