@@ -84,7 +84,7 @@ pub extern "C" fn _start() -> ! {
     CON_DEVICE.write_cmd(
         ConCmd::Print(10, 24, AnsiColor::BrightRed, AnsiColor::BrightCyan),
         "Final thing!".as_bytes()
-    ).unwrap_or(());
+    ).unwrap_or_default();
 
     loop {}
 }

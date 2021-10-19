@@ -57,6 +57,22 @@ pub enum ConCmd {
     GetSize
 }
 
+/// Console Command Result
+pub enum ConCmdResult {
+    /// New cursor position (X,Y)
+    CursorPos(usize, usize),
+    /// ASCII character with text and background colors
+    Character(u8, AnsiColor, AnsiColor),
+    /// No result
+    None
+}
+
+impl Default for ConCmdResult {
+    fn default() -> Self {
+        Self::None
+    }
+}
+
 type Empty = u8;
 
 /// Console Device
@@ -156,21 +172,21 @@ impl From<u8> for VgaConsoleColor {
 /// For commands without data, like SetCursor and Enable/DisableCursor, we implement InputFlow with unit type.
 impl InputFlow<()> for ConsoleDevice {
     type Command = ConCmd;
-    type CmdResult = ();
+    type CmdResult = ConCmdResult;
 
     fn write_cmd(&self, cmd: Self::Command, data: ()) -> Result<Self::CmdResult, Error> {
         match cmd {
             ConCmd::SetCursor(x, y) => {
                 //TODO
-                Ok(())
+                Ok(ConCmdResult::default())
             },
             ConCmd::EnableCursor => {
                 //TODO
-                Ok(())
+                Ok(ConCmdResult::default())
             },
             ConCmd::DisableCursor => {
                 //TODO
-                Ok(())
+                Ok(ConCmdResult::default())
             },
             _ => Err(Error)
         }
@@ -180,7 +196,7 @@ impl InputFlow<()> for ConsoleDevice {
 /// Print a single ASCII char
 impl InputFlow<u8> for ConsoleDevice {
     type Command = ConCmd;
-    type CmdResult = ();
+    type CmdResult = ConCmdResult;
 
     fn write_cmd(&self, cmd: Self::Command, data: u8) -> Result<Self::CmdResult, Error> {
         match cmd {
@@ -192,8 +208,8 @@ impl InputFlow<u8> for ConsoleDevice {
                         let color = ((VgaConsoleColor::from(bg_color) as u8) << 4) | (VgaConsoleColor::from(text_color) as u8);
                         *((0xB8000 + pos * 2 + 1) as *mut u8) = color;
                     }
-                    //TODO: move cursor to new location
-                    Ok(())
+                    //TODO: move cursor to new location or simply return the new location as result
+                    Ok(ConCmdResult::default())
                 }
                 else {
                     Err(Error)
@@ -207,7 +223,7 @@ impl InputFlow<u8> for ConsoleDevice {
 /// Print an array of ASCII chars
 impl InputFlow<&[u8]> for ConsoleDevice {
     type Command = ConCmd;
-    type CmdResult = ();
+    type CmdResult = ConCmdResult;
 
     fn write_cmd(&self, cmd: Self::Command, data: &[u8]) -> Result<Self::CmdResult, Error> {
         match cmd {
@@ -223,7 +239,7 @@ impl InputFlow<&[u8]> for ConsoleDevice {
                         y = 0;
                     }
                 }
-                Ok(())
+                Ok(ConCmdResult::default())
             },
             _ => Err(Error)
         }
