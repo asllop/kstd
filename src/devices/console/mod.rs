@@ -1,6 +1,7 @@
 use core::{
     convert::From,
-    fmt::Error
+    fmt::Error,
+    marker::PhantomData
 };
 
 use super::{
@@ -11,10 +12,12 @@ use super::{
  * Arch Independant
  **********************/
 
-/// Define an ANSI color (https://www.lihaoyi.com/post/BuildyourownCommandLinewithANSIescapecodes.html)
+/// Define an ANSI color
+/// 
+/// More info about ANSI colors: https://en.wikipedia.org/wiki/ANSI_escape_code#Colors
 #[derive(Copy, Clone)]
 pub enum AnsiColor {
-    // Basic termimals
+    // Basic terminals
     Black,
     Red,
     Green,
@@ -36,6 +39,7 @@ pub enum AnsiColor {
     Color256(u8)
 }
 
+/// Console Commands
 pub enum ConCmd {
     /// Print at position (X,Y) with text color and background color
     Print(usize, usize, AnsiColor, AnsiColor),
@@ -53,11 +57,17 @@ pub enum ConCmd {
     GetSize
 }
 
+type Empty = u8;
+
 /// Console Device
-pub struct ConsoleDevice;
+/// 
+/// Private field is only to prevent anyone from creating a ConsoleDevice from outside this module.
+pub struct ConsoleDevice(PhantomData<Empty>);
 
 /// Public Console Device Interface
-pub static CON_DEVICE : ConsoleDevice = ConsoleDevice;
+pub static CON_DEVICE : ConsoleDevice = ConsoleDevice(PhantomData);
+
+//TODO: put each arch dependant ConsoleDevice implementation into a different file and compile conditionally
 
 /**********************
  * Arch Dependant
@@ -104,32 +114,83 @@ impl From<AnsiColor> for VgaConsoleColor {
             AnsiColor::BrightMagenta => VgaConsoleColor::LightPurple,
             AnsiColor::BrightYellow => VgaConsoleColor::Yellow,
             AnsiColor::White => VgaConsoleColor::White,
-            AnsiColor::Color256(_) => VgaConsoleColor::Black
+            // First 16 colors are the ones supported by VgaConsoleColor. For the rest we map in blocks of 16.
+            AnsiColor::Color256(c) => {
+                if c < 16 {
+                    VgaConsoleColor::from(c)
+                }
+                else {
+                    VgaConsoleColor::from(c / 16u8)
+                }
+            }
+        }
+    }
+}
+
+impl From<u8> for VgaConsoleColor {
+    fn from(value: u8) -> Self {
+        match value & 0xF {
+            0 => VgaConsoleColor::Black,
+            1 => VgaConsoleColor::Blue,
+            2 => VgaConsoleColor::Green,
+            3 => VgaConsoleColor::Cyan,
+            4 => VgaConsoleColor::Red,
+            5 => VgaConsoleColor::Purple,
+            6 => VgaConsoleColor::Brown,
+            7 => VgaConsoleColor::Gray,
+            8 => VgaConsoleColor::DarkGray,
+            9 => VgaConsoleColor::LightBlue,
+            10 => VgaConsoleColor::LightGreen,
+            11 => VgaConsoleColor::LightCyan,
+            12 => VgaConsoleColor::LightRed,
+            13 => VgaConsoleColor::LightPurple,
+            14 => VgaConsoleColor::Yellow,
+            15 => VgaConsoleColor::White,
+            _ => VgaConsoleColor::Black
         }
     }
 }
 
 // TODO: implement remaining commands for ConsoleDevice.
 
-impl InputFlow<Option<u8>> for ConsoleDevice {
+/// For commands without data, like SetCursor and Enable/DisableCursor, we implement InputFlow with unit type.
+impl InputFlow<()> for ConsoleDevice {
     type Command = ConCmd;
 
-    fn write_cmd(&self, cmd: Self::Command, data: Option<u8>) -> Result<(), Error> {
+    fn write_cmd(&self, cmd: Self::Command, data: ()) -> Result<(), Error> {
+        match cmd {
+            ConCmd::SetCursor(x, y) => {
+                //TODO
+                Ok(())
+            },
+            ConCmd::EnableCursor => {
+                //TODO
+                Ok(())
+            },
+            ConCmd::DisableCursor => {
+                //TODO
+                Ok(())
+            },
+            _ => Err(Error)
+        }
+    }
+}
+
+/// Print a single ASCII char
+impl InputFlow<u8> for ConsoleDevice {
+    type Command = ConCmd;
+
+    fn write_cmd(&self, cmd: Self::Command, data: u8) -> Result<(), Error> {
         match cmd {
             ConCmd::Print(x, y, text_color, bg_color) => {
-                if let Some(data) = data {
-                    let pos = 80 * y + x;
-                    if pos < 2000 {
-                        unsafe {
-                            *((0xB8000 + pos * 2) as *mut u8) = data;
-                            let color = ((VgaConsoleColor::from(bg_color) as u8) << 4) | (VgaConsoleColor::from(text_color) as u8);
-                            *((0xB8000 + pos * 2 + 1) as *mut u8) = color;
-                        }
-                        Ok(())
+                let pos = 80 * y + x;
+                if pos < 2000 {
+                    unsafe {
+                        *((0xB8000 + pos * 2) as *mut u8) = data;
+                        let color = ((VgaConsoleColor::from(bg_color) as u8) << 4) | (VgaConsoleColor::from(text_color) as u8);
+                        *((0xB8000 + pos * 2 + 1) as *mut u8) = color;
                     }
-                    else {
-                        Err(Error)
-                    }
+                    Ok(())
                 }
                 else {
                     Err(Error)
@@ -140,6 +201,7 @@ impl InputFlow<Option<u8>> for ConsoleDevice {
     }
 }
 
+/// Print an array of ASCII chars
 impl InputFlow<&[u8]> for ConsoleDevice {
     type Command = ConCmd;
 
@@ -147,7 +209,7 @@ impl InputFlow<&[u8]> for ConsoleDevice {
         match cmd {
             ConCmd::Print(mut x, mut y, text_color, bg_color) => {
                 for ch in data {
-                    self.write_cmd(ConCmd::Print(x, y, text_color, bg_color), Some(*ch))?;
+                    self.write_cmd(ConCmd::Print(x, y, text_color, bg_color), *ch)?;
                     x += 1;
                     if x >= 80 {
                         x = 0;
