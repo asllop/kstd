@@ -7,6 +7,8 @@ use core::{
     }
 };
 
+use core::sync::atomic::AtomicI32;
+
 /// Input Flow trait. For writing data to a device.
 pub trait InputFlow<T> {
     type Command;
@@ -21,23 +23,59 @@ pub trait OutputFlow<T> {
     fn read_cmd(&self, cmd: Self::Command) -> Option<T>;
 }
 
+/// Define an ANSI color (https://www.lihaoyi.com/post/BuildyourownCommandLinewithANSIescapecodes.html)
 #[derive(Copy, Clone)]
-pub struct ColorRgba32(u8, u8, u8, u8);
+pub enum AnsiColor {
+    // Basic termimals
+    Black,
+    Red,
+    Green,
+    Yellow,
+    Blue,
+    Magenta,
+    Cyan,
+    White,
+    // Bright-Bold terminals
+    BrightBlack,
+    BrightRed,
+    BrightGreen,
+    BrightYellow,
+    BrightBlue,
+    BrightMagenta,
+    BrightCyan,
+    BrightWhite,
+    // Extended color terminals
+    Color256(u8)
+}
 
-impl ColorRgba32 {
-    pub const fn new(red: u8, green: u8, blue: u8, alpha: u8) -> Self {
-        Self(red, green, blue, alpha)
+/// Convert an ANSI color to an VGA console color code
+impl From<AnsiColor> for VgaConsoleColor {
+    fn from(value: AnsiColor) -> Self {
+        match value {
+            AnsiColor::Black => VgaConsoleColor::Black,
+            AnsiColor::Blue => VgaConsoleColor::Blue,
+            AnsiColor::Green => VgaConsoleColor::Green,
+            AnsiColor::Cyan => VgaConsoleColor::Cyan,
+            AnsiColor::Red => VgaConsoleColor::Red,
+            AnsiColor::Magenta => VgaConsoleColor::Purple,
+            AnsiColor::Yellow => VgaConsoleColor::Brown,
+            AnsiColor::BrightWhite => VgaConsoleColor::Gray,
+            AnsiColor::BrightBlack => VgaConsoleColor::DarkGray,
+            AnsiColor::BrightBlue => VgaConsoleColor::LightBlue,
+            AnsiColor::BrightGreen => VgaConsoleColor::LightGreen,
+            AnsiColor::BrightCyan => VgaConsoleColor::LightCyan,
+            AnsiColor::BrightRed => VgaConsoleColor::LightRed,
+            AnsiColor::BrightMagenta => VgaConsoleColor::LightPurple,
+            AnsiColor::BrightYellow => VgaConsoleColor::Yellow,
+            AnsiColor::White => VgaConsoleColor::White,
+            AnsiColor::Color256(_) => VgaConsoleColor::Black
+        }
     }
-
-    pub fn red(&self) -> u8 { self.0 }
-    pub fn green(&self) -> u8 { self.1 }
-    pub fn blue(&self) -> u8 { self.2 }
-    pub fn alpha(&self) -> u8 { self.3 }
 }
 
 pub enum ConCmd {
     /// Print at position with text color and background color
-    Print(usize, ColorRgba32, ColorRgba32),
+    Print(usize, AnsiColor, AnsiColor),
     /// Read from position
     Read(usize),
     /// Set cursor at position
@@ -55,33 +93,25 @@ pub enum ConCmd {
 /// TODO: set/get cursor position. enable/disable cursor.
 pub struct ConsoleDevice;
 
-/// Convert from RGBA to VGA console color code
-impl From<ColorRgba32> for u8 {
-    fn from(value: ColorRgba32) -> Self {
-        match value {
-            ColorRgba32(0,0,0,_) => 0, // Black
-            ColorRgba32(0,0,170,_) => 1, // Blue
-            ColorRgba32(0,170,0,_) => 2, // Green
-            ColorRgba32(0,170,170,_) => 3, // Cyan
-            ColorRgba32(170,0,0,_) => 4, // Red
-            ColorRgba32(170,0,170,_) => 5, // Purple
-            ColorRgba32(170,85,0,_) => 6, // Brown
-            ColorRgba32(170,170,170,_) => 7, // Gray
-            ColorRgba32(85,85,85,_) => 8, // DarkGray
-            ColorRgba32(85,85,255,_) => 9, // LightBlue
-            ColorRgba32(85,255,85,_) => 10, // LightGreen
-            ColorRgba32(85,255,255,_) => 11, // LightCyan
-            ColorRgba32(255,85,85,_) => 12, // LightRed
-            ColorRgba32(255,85,255,_) => 13, // LightPurple
-            ColorRgba32(255,255,85,_) => 14, // Yellow
-            ColorRgba32(255,255,255,_) => 15, // White
-            _ => 0
-        }
-    }
-}
-
-pub enum VGAConsoleColor {
-    
+#[derive(Copy, Clone)]
+#[repr(u8)]
+pub enum VgaConsoleColor {
+    Black = 0,
+    Blue,
+    Green,
+    Cyan,
+    Red,
+    Purple,
+    Brown,
+    Gray,
+    DarkGray,
+    LightBlue,
+    LightGreen,
+    LightCyan,
+    LightRed,
+    LightPurple,
+    Yellow,
+    White
 }
 
 impl InputFlow<Option<u8>> for ConsoleDevice {
@@ -94,7 +124,7 @@ impl InputFlow<Option<u8>> for ConsoleDevice {
                     if pos < 2000 {
                         unsafe {
                             *((0xB8000 + pos * 2) as *mut u8) = data;
-                            let color = (u8::from(bg_color) << 4) | u8::from(text_color);
+                            let color = ((VgaConsoleColor::from(bg_color) as u8) << 4) | (VgaConsoleColor::from(text_color) as u8);
                             *((0xB8000 + pos * 2 + 1) as *mut u8) = color;
                         }
                         Ok(())
@@ -129,7 +159,7 @@ impl InputFlow<&[u8]> for ConsoleDevice {
     }
 }
 
-use core::sync::atomic::AtomicI32;
+pub static CON_DEVICE : ConsoleDevice = ConsoleDevice;
 
 pub struct MutableThing {
     pub my_val: AtomicI32
