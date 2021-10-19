@@ -59,6 +59,14 @@ use counter_future::*;
 use core::sync::atomic::Ordering;
 use core::sync::atomic::AtomicI32;
 
+mod devices;
+use devices::{
+    InputFlow, OutputFlow,
+    console::{
+        ConCmd, ConsoleDevice, CON_DEVICE, AnsiColor
+    }
+};
+
 /// This function is called on panic.
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
