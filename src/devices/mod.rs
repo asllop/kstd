@@ -1,7 +1,9 @@
 pub mod console;
 pub use console::*;
 
-use core::fmt::Error;
+use core::{
+    fmt::Error
+};
 
 /// Input Flow trait. For writing data to a device.
 pub trait InputFlow<T> {

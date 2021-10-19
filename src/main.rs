@@ -67,6 +67,18 @@ use devices::{
     }
 };
 
+mod sys;
+use sys::{
+    KMutex, KLock
+};
+
+static TEST : KMutex<TestStruct> = KMutex::new(TestStruct { count: 0, buf: [0;32] });
+
+struct TestStruct {
+    count: usize,
+    buf: [u8 ; 32]
+}
+
 /// This function is called on panic.
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
@@ -85,6 +97,8 @@ pub extern "C" fn _start() -> ! {
         ConCmd::Print(10, 24, AnsiColor::BrightRed, AnsiColor::BrightCyan),
         "Final thing!".as_bytes()
     ).unwrap_or_default();
+
+    println!("TEST lock count = {}", TEST.lock().count);
 
     loop {}
 }
