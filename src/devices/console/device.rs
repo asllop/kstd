@@ -32,9 +32,11 @@ pub enum ConCmd {
 /// Console Command Result
 pub enum ConCmdResult {
     /// New cursor position (X,Y)
-    CursorPos(usize, usize),
+    Pos(usize, usize),
     /// ASCII character with text and background colors
     Character(u8, AnsiColor, AnsiColor),
+    /// Console size in Columns, Rows
+    Size(usize, usize),
     /// No result
     None
 }
