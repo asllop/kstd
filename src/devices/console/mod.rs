@@ -1,89 +1,17 @@
 use core::{
     convert::From,
-    fmt::Error,
-    marker::PhantomData
+    fmt::Error
 };
 
 use super::{
     InputFlow, OutputFlow
 };
 
-use crate::sys::KMutex;
+mod ansi;
+pub use ansi::*;
 
-/**********************
- * Arch Independant
- **********************/
-
-/// Define an ANSI color
-/// 
-/// More info about ANSI colors: https://en.wikipedia.org/wiki/ANSI_escape_code#Colors
-#[derive(Copy, Clone)]
-pub enum AnsiColor {
-    // Basic terminals
-    Black,
-    Red,
-    Green,
-    Yellow,
-    Blue,
-    Magenta,
-    Cyan,
-    White,
-    // Bright-Bold terminals
-    BrightBlack,
-    BrightRed,
-    BrightGreen,
-    BrightYellow,
-    BrightBlue,
-    BrightMagenta,
-    BrightCyan,
-    BrightWhite,
-    // Extended color terminals
-    Color256(u8)
-}
-
-/// Console Commands
-pub enum ConCmd {
-    /// Print at position (X,Y) with text color and background color
-    Print(usize, usize, AnsiColor, AnsiColor),
-    /// Read from position (X,Y)
-    Read(usize, usize),
-    /// Set cursor at position (X,Y)
-    SetCursor(usize, usize),
-    /// Set Get cursor position
-    GetCursor,
-    /// Enable cursor
-    EnableCursor,
-    /// Disable cursor
-    DisableCursor,
-    /// Get console size in rows and columns
-    GetSize
-}
-
-/// Console Command Result
-pub enum ConCmdResult {
-    /// New cursor position (X,Y)
-    CursorPos(usize, usize),
-    /// ASCII character with text and background colors
-    Character(u8, AnsiColor, AnsiColor),
-    /// No result
-    None
-}
-
-impl Default for ConCmdResult {
-    fn default() -> Self {
-        Self::None
-    }
-}
-
-type Empty = u8;
-
-/// Console Device
-/// 
-/// Private field is only to prevent anyone from creating a ConsoleDevice from outside this module.
-pub struct ConsoleDevice(PhantomData<Empty>);
-
-/// Public Console Device Interface
-pub static CON_DEVICE : KMutex<ConsoleDevice> = KMutex::new(ConsoleDevice(PhantomData));
+mod device;
+pub use device::*;
 
 //TODO: put each arch dependant ConsoleDevice implementation into a different file and compile conditionally
 
