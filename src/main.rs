@@ -74,7 +74,7 @@ pub extern "C" fn _start() -> ! {
     println!("After change, MT my_val {}", MT.my_val.load(Ordering::SeqCst));
 
     CON_DEVICE.write_cmd(
-        ConCmd::Print(2000 - 80, AnsiColor::BrightRed, AnsiColor::BrightCyan),
+        ConCmd::Print(10, 24, AnsiColor::BrightRed, AnsiColor::BrightCyan),
         "Final thing!".as_bytes()
     ).unwrap_or(());
 

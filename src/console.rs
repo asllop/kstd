@@ -74,12 +74,12 @@ impl From<AnsiColor> for VgaConsoleColor {
 }
 
 pub enum ConCmd {
-    /// Print at position with text color and background color
-    Print(usize, AnsiColor, AnsiColor),
-    /// Read from position
-    Read(usize),
-    /// Set cursor at position
-    SetCursor(usize),
+    /// Print at position (X,Y) with text color and background color
+    Print(usize, usize, AnsiColor, AnsiColor),
+    /// Read from position (X,Y)
+    Read(usize, usize),
+    /// Set cursor at position (X,Y)
+    SetCursor(usize, usize),
     /// Set Get cursor position
     GetCursor,
     /// Enable cursor
@@ -119,8 +119,9 @@ impl InputFlow<Option<u8>> for ConsoleDevice {
 
     fn write_cmd(&self, cmd: Self::Command, data: Option<u8>) -> Result<(), Error> {
         match cmd {
-            ConCmd::Print(pos, text_color, bg_color) => {
+            ConCmd::Print(x, y, text_color, bg_color) => {
                 if let Some(data) = data {
+                    let pos = 80 * y + x;
                     if pos < 2000 {
                         unsafe {
                             *((0xB8000 + pos * 2) as *mut u8) = data;
@@ -147,10 +148,17 @@ impl InputFlow<&[u8]> for ConsoleDevice {
 
     fn write_cmd(&self, cmd: Self::Command, data: &[u8]) -> Result<(), Error> {
         match cmd {
-            ConCmd::Print(mut pos, text_color, bg_color) => {
+            ConCmd::Print(mut x, mut y, text_color, bg_color) => {
                 for ch in data {
-                    self.write_cmd(ConCmd::Print(pos, text_color, bg_color), Some(*ch))?;
-                    pos += 1;
+                    self.write_cmd(ConCmd::Print(x, y, text_color, bg_color), Some(*ch))?;
+                    x += 1;
+                    if x >= 80 {
+                        x = 0;
+                        y += 1;
+                    }
+                    if y >= 25 {
+                        y = 0;
+                    }
                 }
                 Ok(())
             },
