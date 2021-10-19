@@ -7,6 +7,128 @@ use core::{
     }
 };
 
+/// Input Flow trait. For writing data to a device.
+pub trait InputFlow<T> {
+    type Command;
+
+    fn write_cmd(&self, cmd: Self::Command, data: T) -> Result<(), Error>;
+}
+
+/// Output Flow trait. For reading data from a device.
+pub trait OutputFlow<T> {
+    type Command;
+    
+    fn read_cmd(&self, cmd: Self::Command) -> Option<T>;
+}
+
+#[derive(Copy, Clone)]
+pub struct ColorRgba32(u8, u8, u8, u8);
+
+impl ColorRgba32 {
+    pub const fn new(red: u8, green: u8, blue: u8, alpha: u8) -> Self {
+        Self(red, green, blue, alpha)
+    }
+
+    pub fn red(&self) -> u8 { self.0 }
+    pub fn green(&self) -> u8 { self.1 }
+    pub fn blue(&self) -> u8 { self.2 }
+    pub fn alpha(&self) -> u8 { self.3 }
+}
+
+pub enum ConCmd {
+    /// Print at position with text color and background color
+    Print(usize, ColorRgba32, ColorRgba32),
+    /// Read from position
+    Read(usize),
+    /// Set cursor at position
+    SetCursor(usize),
+    /// Set Get cursor position
+    GetCursor,
+    /// Enable cursor
+    EnableCursor,
+    /// Disable cursor
+    DisableCursor
+}
+
+/// Console Device
+/// 
+/// TODO: set/get cursor position. enable/disable cursor.
+pub struct ConsoleDevice;
+
+/// Convert from RGBA to VGA console color code
+impl From<ColorRgba32> for u8 {
+    fn from(value: ColorRgba32) -> Self {
+        match value {
+            ColorRgba32(0,0,0,_) => 0, // Black
+            ColorRgba32(0,0,170,_) => 1, // Blue
+            ColorRgba32(0,170,0,_) => 2, // Green
+            ColorRgba32(0,170,170,_) => 3, // Cyan
+            ColorRgba32(170,0,0,_) => 4, // Red
+            ColorRgba32(170,0,170,_) => 5, // Purple
+            ColorRgba32(170,85,0,_) => 6, // Brown
+            ColorRgba32(170,170,170,_) => 7, // Gray
+            ColorRgba32(85,85,85,_) => 8, // DarkGray
+            ColorRgba32(85,85,255,_) => 9, // LightBlue
+            ColorRgba32(85,255,85,_) => 10, // LightGreen
+            ColorRgba32(85,255,255,_) => 11, // LightCyan
+            ColorRgba32(255,85,85,_) => 12, // LightRed
+            ColorRgba32(255,85,255,_) => 13, // LightPurple
+            ColorRgba32(255,255,85,_) => 14, // Yellow
+            ColorRgba32(255,255,255,_) => 15, // White
+            _ => 0
+        }
+    }
+}
+
+pub enum VGAConsoleColor {
+    
+}
+
+impl InputFlow<Option<u8>> for ConsoleDevice {
+    type Command = ConCmd;
+
+    fn write_cmd(&self, cmd: Self::Command, data: Option<u8>) -> Result<(), Error> {
+        match cmd {
+            ConCmd::Print(pos, text_color, bg_color) => {
+                if let Some(data) = data {
+                    if pos < 2000 {
+                        unsafe {
+                            *((0xB8000 + pos * 2) as *mut u8) = data;
+                            let color = (u8::from(bg_color) << 4) | u8::from(text_color);
+                            *((0xB8000 + pos * 2 + 1) as *mut u8) = color;
+                        }
+                        Ok(())
+                    }
+                    else {
+                        Err(Error)
+                    }
+                }
+                else {
+                    Err(Error)
+                }
+            },
+            _ => Err(Error)
+        }
+    }
+}
+
+impl InputFlow<&[u8]> for ConsoleDevice {
+    type Command = ConCmd;
+
+    fn write_cmd(&self, cmd: Self::Command, data: &[u8]) -> Result<(), Error> {
+        match cmd {
+            ConCmd::Print(mut pos, text_color, bg_color) => {
+                for ch in data {
+                    self.write_cmd(ConCmd::Print(pos, text_color, bg_color), Some(*ch))?;
+                    pos += 1;
+                }
+                Ok(())
+            },
+            _ => Err(Error)
+        }
+    }
+}
+
 use core::sync::atomic::AtomicI32;
 
 pub struct MutableThing {
