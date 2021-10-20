@@ -1,22 +1,22 @@
 /// Error type
 #[derive(Copy, Clone)]
-pub enum Error {
-    /// Buffer out of bounds
-    BufOutBounds,
+pub enum KError {
+    /// Index out of bounds
+    OutBounds,
     /// Wrong command
     WrongCmd,
     /// Not classified error
     Other
 }
 
-impl Error {
+impl KError {
     pub fn msg(&self) -> &str {
         //TODO: convert code into a message
         ""
     }
 }
 
-impl core::default::Default for Error {
+impl core::default::Default for KError {
     fn default() -> Self {
         Self::Other
     }

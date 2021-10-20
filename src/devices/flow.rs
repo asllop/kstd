@@ -1,5 +1,5 @@
 use crate::{
-    sys::Error
+    sys::KError as Error
 };
 
 /// Input Flow trait. For writing data to a device.

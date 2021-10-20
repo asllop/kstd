@@ -9,7 +9,7 @@ use crate::{
             AnsiColor, ConCmd, ConCmdResult, ConsoleDevice
         }
     },
-    sys::Error
+    sys::KError as Error
 };
 
 #[derive(Copy, Clone)]
@@ -145,7 +145,7 @@ impl InputFlow<u8> for ConsoleDevice {
                     Ok(ConCmdResult::default())
                 }
                 else {
-                    Err(Error::BufOutBounds)
+                    Err(Error::OutBounds)
                 }
             },
             _ => Err(Error::WrongCmd)

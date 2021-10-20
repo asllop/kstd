@@ -9,7 +9,7 @@ use crate::{
         }
     },
     sys::{
-        KMutex, Error
+        KMutex as Mutex, KError as Error
     }
 };
 
@@ -72,4 +72,4 @@ type Empty = u8;
 pub struct ConsoleDevice(PhantomData<Empty>);
 
 /// Public Console Device Interface
-pub static CON_DEVICE : KMutex<ConsoleDevice> = KMutex::new(ConsoleDevice(PhantomData));
+pub static CON_DEVICE : Mutex<ConsoleDevice> = Mutex::new(ConsoleDevice(PhantomData));
