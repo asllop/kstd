@@ -4,7 +4,7 @@ use core::{
 
 use crate::{
     devices::{
-        InputFlow,
+        InputFlow, OutputFlow,
         console::{
             AnsiColor, ConCmd, ConCmdResult, ConsoleDevice
         }
@@ -91,11 +91,8 @@ impl From<u8> for VgaConsoleColor {
 }
 
 /// For commands without data, like SetCursor and Enable/DisableCursor, we implement InputFlow with unit type.
-impl InputFlow<()> for ConsoleDevice {
-    type Command = ConCmd;
-    type CmdResult = ConCmdResult;
-
-    fn write_cmd(&self, cmd: Self::Command, data: ()) -> Result<Self::CmdResult, Error> {
+impl InputFlow<(), ConCmd, ConCmdResult> for ConsoleDevice {
+    fn write_cmd(&self, cmd: ConCmd, data: ()) -> Result<ConCmdResult, Error> {
         match cmd {
             ConCmd::SetCursor(x, y) => {
                 //TODO
@@ -109,29 +106,14 @@ impl InputFlow<()> for ConsoleDevice {
                 //TODO
                 Ok(ConCmdResult::default())
             },
-            ConCmd::Read(x, y) => {
-                //TODO
-                Ok(ConCmdResult::default())
-            },
-            ConCmd::GetCursor => {
-                //TODO
-                Ok(ConCmdResult::default())
-            },
-            ConCmd::GetSize => {
-                //TODO
-                Ok(ConCmdResult::default())
-            },
             _ => Err(Error::WrongCmd)
         }
     }
 }
 
 /// Print a single ASCII char
-impl InputFlow<u8> for ConsoleDevice {
-    type Command = ConCmd;
-    type CmdResult = ConCmdResult;
-
-    fn write_cmd(&self, cmd: Self::Command, data: u8) -> Result<Self::CmdResult, Error> {
+impl InputFlow<u8, ConCmd, ConCmdResult> for ConsoleDevice {
+    fn write_cmd(&self, cmd: ConCmd, data: u8) -> Result<ConCmdResult, Error> {
         match cmd {
             ConCmd::Print(x, y, text_color, bg_color) => {
                 let pos = 80 * y + x;
@@ -154,11 +136,8 @@ impl InputFlow<u8> for ConsoleDevice {
 }
 
 /// Print an array of ASCII chars
-impl InputFlow<&[u8]> for ConsoleDevice {
-    type Command = ConCmd;
-    type CmdResult = ConCmdResult;
-
-    fn write_cmd(&self, cmd: Self::Command, data: &[u8]) -> Result<Self::CmdResult, Error> {
+impl InputFlow<&[u8], ConCmd, ConCmdResult> for ConsoleDevice {
+    fn write_cmd(&self, cmd: ConCmd, data: &[u8]) -> Result<ConCmdResult, Error> {
         match cmd {
             ConCmd::Print(mut x, mut y, text_color, bg_color) => {
                 for ch in data {
@@ -173,6 +152,36 @@ impl InputFlow<&[u8]> for ConsoleDevice {
                     }
                 }
                 Ok(ConCmdResult::default())
+            },
+            _ => Err(Error::WrongCmd)
+        }
+    }
+}
+
+/// Read ASCII character and colors at position
+impl OutputFlow<(u8, AnsiColor, AnsiColor), ConCmd> for ConsoleDevice {
+    fn read_cmd(&self, cmd: ConCmd) -> Result<(u8, AnsiColor, AnsiColor), Error> {
+        match cmd {
+            ConCmd::Read(x, y) => {
+                //TODO
+                Err(Error::default())
+            },
+            _ => Err(Error::WrongCmd)
+        }
+    }
+}
+
+/// Get cursor position and console size
+impl OutputFlow<(usize, usize), ConCmd> for ConsoleDevice {
+    fn read_cmd(&self, cmd: ConCmd) -> Result<(usize, usize), Error> {
+        match cmd {
+            ConCmd::GetCursor => {
+                //TODO
+                Err(Error::default())
+            },
+            ConCmd::GetSize => {
+                //TODO
+                Err(Error::default())
             },
             _ => Err(Error::WrongCmd)
         }

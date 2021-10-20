@@ -50,7 +50,7 @@ impl Default for ConCmdResult {
 }
 
 // Why the cmd system is better than a static interface like the following?
-// With commands, one arch can give more features that are available to only that arch
+// With commands, one arch can give more features that are available to only that arch. We have more flexibility.
 /*
 pub trait ConsoleDeviceInterface {
     fn print(x: usize, y: usize, tex_color: AnsiColor, bg_color: AnsiColor, ascii: u8) -> Result<(), Error>;

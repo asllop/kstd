@@ -3,16 +3,20 @@ use crate::{
 };
 
 /// Input Flow trait. For writing data to a device.
-pub trait InputFlow<T> {
-    type Command;
-    type CmdResult;
-
-    fn write_cmd(&self, cmd: Self::Command, data: T) -> Result<Self::CmdResult, Error>;
+/// 
+/// The generic types are:
+/// * `D` : Data to write. 
+/// * `C` : Command to run.
+/// * `R` : Result to return.
+pub trait InputFlow<D, C, R> {
+    fn write_cmd(&self, cmd: C, data: D) -> Result<R, Error>;
 }
 
 /// Output Flow trait. For reading data from a device.
-pub trait OutputFlow<T> {
-    type Command;
-    
-    fn read_cmd(&self, cmd: Self::Command) -> Option<T>;
+/// 
+/// The generic types are:
+/// * `D` : Data to return. 
+/// * `C` : Command to run.
+pub trait OutputFlow<D, C> {
+    fn read_cmd(&self, cmd: C) -> Result<D, Error>;
 }
