@@ -36,18 +36,25 @@ impl ScreenConsole<'_> {
         let size = console_lock.read_cmd(
             ConCmd::GetSize
         ).unwrap_or(ConCmdResult::Size(0,0));
-        //TODO: get current cursor position to init x,y
+        let pos = console_lock.read_cmd(
+            ConCmd::GetCursor
+        ).unwrap_or(ConCmdResult::Pos(0,0));
         if let ConCmdResult::Size(cols, rows) = size {
-            Self {
-                cols, rows,
-                x: 0, y: 0,
-                console_lock,
-                text_color,
-                bg_color
+            if let ConCmdResult::Pos(x, y) = pos {
+                Self {
+                    cols, rows,
+                    x, y,
+                    console_lock,
+                    text_color,
+                    bg_color
+                }
+            }
+            else {
+                panic!("Unexpected result of `GetSize` console command");
             }
         }
         else {
-            panic!("Unexpected result of console command");
+            panic!("Unexpected result of `GetCursor` console command");
         }
     }
 
@@ -80,10 +87,13 @@ impl ConsoleController for ScreenConsole<'_> {
 
     fn get_xy(&self) -> (usize, usize) { (self.x, self.y) }
 
-    //TODO: move cursor
     fn set_xy(&mut self, x: usize, y: usize) -> Result<(), KError> {
         self.x = x;
         self.y = y;
+        self.console_lock.write_cmd(
+            ConCmd::SetCursor(x, y),
+            ()
+        ).unwrap_or(ConCmdResult::None);
         Ok(())
     }
 
@@ -97,7 +107,6 @@ impl Default for ScreenConsole<'_> {
 }
 
 //TODO: create a buffer and scroll all lines up when a new line happens
-//TODO: update cursor position
 //TODO: parse ANSI commands in the string to set colors, etc
 
 impl Write for ScreenConsole<'_> {
@@ -115,6 +124,7 @@ impl Write for ScreenConsole<'_> {
                 self.inc_pos();
             }
         }
+        self.set_xy(self.x, self.y);
         Ok(())
     }
 }

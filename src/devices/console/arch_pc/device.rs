@@ -9,7 +9,10 @@ use crate::{
             AnsiColor, ConCmd, ConCmdResult, ConsoleDevice
         }
     },
-    sys::KError
+    sys::KError,
+    arch::x86_64::{
+        inb, outb
+    }
 };
 
 #[derive(Copy, Clone)]
@@ -118,16 +121,20 @@ impl InputFlow<(), ConCmd, ConCmdResult> for ConsoleDevice {
     fn write_cmd(&self, cmd: ConCmd, data: ()) -> Result<ConCmdResult, KError> {
         match cmd {
             ConCmd::SetCursor(x, y) => {
-                //TODO
-                Ok(ConCmdResult::default())
+                let pos: u16 = (80 * y + x) as u16;
+                outb(0x3D4, 0x0F);
+                outb(0x3D5, (pos & 0xFF) as u8);
+                outb(0x3D4, 0x0E);
+                outb(0x3D5, ((pos >> 8) & 0xFF) as u8);
+                Ok(ConCmdResult::None)
             },
             ConCmd::EnableCursor => {
                 //TODO
-                Ok(ConCmdResult::default())
+                Ok(ConCmdResult::None)
             },
             ConCmd::DisableCursor => {
                 //TODO
-                Ok(ConCmdResult::default())
+                Ok(ConCmdResult::None)
             },
             _ => Err(KError::WrongCmd)
         }
@@ -146,7 +153,7 @@ impl InputFlow<u8, ConCmd, ConCmdResult> for ConsoleDevice {
                         let color = ((VgaConsoleColor::from(bg_color) as u8) << 4) | (VgaConsoleColor::from(text_color) as u8);
                         *((0xB8000 + pos * 2 + 1) as *mut u8) = color;
                     }
-                    Ok(ConCmdResult::default())
+                    Ok(ConCmdResult::None)
                 }
                 else {
                     Err(KError::OutBounds)
@@ -173,7 +180,7 @@ impl InputFlow<&[u8], ConCmd, ConCmdResult> for ConsoleDevice {
                         y = 0;
                     }
                 }
-                Ok(ConCmdResult::default())
+                Ok(ConCmdResult::None)
             },
             _ => Err(KError::WrongCmd)
         }
@@ -211,7 +218,7 @@ impl OutputFlow<ConCmdResult, ConCmd> for ConsoleDevice {
             },
             ConCmd::GetCursor => {
                 //TODO
-                Ok(ConCmdResult::default())
+                Ok(ConCmdResult::Pos(0,0))
             },
             ConCmd::GetSize => {
                 Ok(ConCmdResult::Size(80, 25))

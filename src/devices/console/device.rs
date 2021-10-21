@@ -50,7 +50,7 @@ impl Default for ConCmdResult {
 }
 
 // Q: Why the cmd system is better than a static interface (a trait with defined functions)?
-// A: With commands, one arch can give more features that are available to only that arch. We have more flexibility.
+// A: With commands, one arch can give more features that are available to only that arch. We have more flexibility. We also don't need to care about mutable/immutable refs.
 
 /// Console Device
 /// 

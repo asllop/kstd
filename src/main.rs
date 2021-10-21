@@ -41,6 +41,7 @@
 
 #![no_std]
 #![no_main]
+#![feature(asm)]
 
 use core::panic::PanicInfo;
 use core::fmt;
@@ -56,6 +57,8 @@ use counter_future::*;
 use core::sync::atomic::Ordering;
 use core::sync::atomic::AtomicI32;
 */
+
+mod arch;
 
 mod devices;
 use devices::{
@@ -102,6 +105,7 @@ pub extern "C" fn _start() -> ! {
 
     {
         let mut con = ScreenConsole::default();
+        con.set_xy(40, 12);
         w_print!(con, "\n\n\n\nHolaaa!!");
     }
 
