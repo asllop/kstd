@@ -127,17 +127,14 @@ pub extern "C" fn _start() -> ! {
 }
 
 fn print_one() {
-    let mut con_ctrl = ScreenConsole::default();
     let x = 101;
-    w_println!(con_ctrl, "\nNumber 1 = {}", x);
+    println!("---->");
+    println!("\nNumber 1 = {}", x);
 }
 
 fn print_two() {
-    let mut con_ctrl = ScreenConsole::default();
-    w_println!(con_ctrl);
-    w_println!(con_ctrl);
     let x = 202;
-    w_println!(con_ctrl, "Number 2 = {}", x);
+    println!("\n\n\nNumber 2 = {}", x);
 }
 
 fn _fail() {
