@@ -39,11 +39,13 @@ pub struct ConsoleController<'a> {
     rows: usize,
     x: usize,
     y: usize,
-    console_lock: Lock<'a, ConsoleDevice>
+    console_lock: Lock<'a, ConsoleDevice>,
+    text_color: AnsiColor,
+    bg_color: AnsiColor
 }
 
 impl ConsoleController<'_> {
-    pub fn new() -> Self {
+    pub fn new(text_color: AnsiColor, bg_color: AnsiColor) -> Self {
         let console_lock = CON_DEVICE.lock();
         let size = console_lock.read_cmd(
             ConCmd::GetSize
@@ -53,7 +55,9 @@ impl ConsoleController<'_> {
             Self {
                 cols, rows,
                 x: 0, y: 0,
-                console_lock
+                console_lock,
+                text_color,
+                bg_color
             }
         }
         else {
@@ -61,11 +65,19 @@ impl ConsoleController<'_> {
         }
     }
 
-    pub fn pos(&self) -> usize {
+    pub fn x(&self) -> usize { self.x }
+
+    pub fn y(&self) -> usize { self.y }
+
+    pub fn rows(&self) -> usize { self.rows }
+
+    pub fn cols(&self) -> usize { self.cols }
+
+    fn pos(&self) -> usize {
         self.cols * self.y + self.x
     }
 
-    pub fn inc_pos(&mut self) {
+    fn inc_pos(&mut self) {
         self.x += 1;
         if self.x >= self.cols {
             self.x = 0;
@@ -76,7 +88,7 @@ impl ConsoleController<'_> {
         }
     }
 
-    pub fn line_break(&mut self) {
+    fn line_break(&mut self) {
         self.y += 1;
         self.x = 0;
         if self.pos() >= self.cols * self.rows {
@@ -86,7 +98,16 @@ impl ConsoleController<'_> {
     }
 }
 
+
+impl core::default::Default for ConsoleController<'_> {
+    fn default() -> Self {
+        Self::new(AnsiColor::White, AnsiColor::Black)
+    }
+}
+
 //TODO: create a buffer and scroll all lines up when a new line happens
+//TODO: update cursor position
+//TODO: parse ANSI commands in the string to set colors, etc
 
 impl Write for ConsoleController<'_> {
     fn write_str(&mut self, s: &str) -> Result<(), Error> {
@@ -96,7 +117,8 @@ impl Write for ConsoleController<'_> {
             }
             else {
                 self.console_lock.write_cmd(
-                    ConCmd::Print(self.x, self.y, AnsiColor::BrightYellow, AnsiColor::BrightBlack),
+                    //TODO: get color from ANSI commands
+                    ConCmd::Print(self.x, self.y, self.text_color, self.bg_color),
                     *ch
                 ).unwrap_or_default();
                 self.inc_pos();

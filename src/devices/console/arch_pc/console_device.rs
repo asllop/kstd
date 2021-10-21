@@ -44,7 +44,7 @@ impl From<AnsiColor> for VgaConsoleColor {
             AnsiColor::Red => VgaConsoleColor::Red,
             AnsiColor::Magenta => VgaConsoleColor::Purple,
             AnsiColor::Yellow => VgaConsoleColor::Brown,
-            AnsiColor::BrightWhite => VgaConsoleColor::Gray,
+            AnsiColor::BrightWhite => VgaConsoleColor::White,
             AnsiColor::BrightBlack => VgaConsoleColor::DarkGray,
             AnsiColor::BrightBlue => VgaConsoleColor::LightBlue,
             AnsiColor::BrightGreen => VgaConsoleColor::LightGreen,
@@ -52,7 +52,7 @@ impl From<AnsiColor> for VgaConsoleColor {
             AnsiColor::BrightRed => VgaConsoleColor::LightRed,
             AnsiColor::BrightMagenta => VgaConsoleColor::LightPurple,
             AnsiColor::BrightYellow => VgaConsoleColor::Yellow,
-            AnsiColor::White => VgaConsoleColor::White,
+            AnsiColor::White => VgaConsoleColor::Gray,
             // First 16 colors are the ones supported by VgaConsoleColor. For the rest we map in blocks of 16.
             AnsiColor::Color256(c) => {
                 if c < 16 {
@@ -76,7 +76,7 @@ impl From<VgaConsoleColor> for AnsiColor {
             VgaConsoleColor::Red => AnsiColor::Red,
             VgaConsoleColor::Purple => AnsiColor::Magenta,
             VgaConsoleColor::Brown => AnsiColor::Yellow,
-            VgaConsoleColor::Gray => AnsiColor::BrightWhite,
+            VgaConsoleColor::White => AnsiColor::BrightWhite,
             VgaConsoleColor::DarkGray => AnsiColor::BrightBlack,
             VgaConsoleColor::LightBlue => AnsiColor::BrightBlue,
             VgaConsoleColor::LightGreen => AnsiColor::BrightGreen,
@@ -84,7 +84,7 @@ impl From<VgaConsoleColor> for AnsiColor {
             VgaConsoleColor::LightRed => AnsiColor::BrightRed,
             VgaConsoleColor::LightPurple => AnsiColor::BrightMagenta ,
             VgaConsoleColor::Yellow => AnsiColor::BrightYellow,
-            VgaConsoleColor::White => AnsiColor::White
+            VgaConsoleColor::Gray => AnsiColor::White
         }
     }
 }
