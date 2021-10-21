@@ -1,6 +1,6 @@
 use core::{
     convert::From,
-    ops::Shl,
+    ops::{Shl, Index, IndexMut},
     fmt::{
         Write,
         Error
@@ -153,7 +153,7 @@ impl Console {
     }
 
     pub fn set_console_char(&self, pos: usize, character: ConsoleChar) -> Result<(), &'static str> {
-        if pos < 2000 {
+        if pos < self.len() {
             unsafe {
                 *((0xB8000 + pos * 2) as *mut u8) = character.get_char();
                 *((0xB8000 + pos * 2 + 1) as *mut u8) = character.get_color();
@@ -162,6 +162,66 @@ impl Console {
         }
         else {
             Err("Position out of bounds")
+        }
+    }
+
+    pub fn len(&self) -> usize { 2000 }
+}
+
+impl core::default::Default for Console {
+    fn default() -> Self {
+        Self(ColorScheme::default())
+    }
+}
+
+#[derive(Copy, Clone)]
+pub enum ConIndex {
+    /// X, Y
+    Cha(usize, usize),
+    /// X, Y
+    Col(usize, usize)
+}
+
+impl Index<ConIndex> for Console {
+    type Output = u8;
+
+    fn index(&self, pos: ConIndex) -> &Self::Output {
+        match pos {
+            ConIndex::Cha(x, y) => {
+                let pos = 80 * y + x;
+                if pos >= self.len() { panic!("Index out of bounds"); }
+                unsafe {
+                    &*((0xB8000 + pos * 2) as *mut u8)
+                }
+            },
+            ConIndex::Col(x, y) => {
+                let pos = 80 * y + x;
+                if pos >= self.len() { panic!("Index out of bounds"); }
+                unsafe {
+                    &*((0xB8000 + pos * 2 + 1) as *mut u8)
+                }
+            }
+        }
+    }
+}
+
+impl IndexMut<ConIndex> for Console {
+    fn index_mut(&mut self, pos: ConIndex) -> &mut Self::Output {
+        match pos {
+            ConIndex::Cha(x, y) => {
+                let pos = 80 * y + x;
+                if pos >= self.len() { panic!("Index out of bounds"); }
+                unsafe {
+                    & mut*((0xB8000 + pos * 2) as *mut u8)
+                }
+            },
+            ConIndex::Col(x, y) => {
+                let pos = 80 * y + x;
+                if pos >= self.len() { panic!("Index out of bounds"); }
+                unsafe {
+                    & mut*((0xB8000 + pos * 2 + 1) as *mut u8)
+                }
+            }
         }
     }
 }

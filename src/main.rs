@@ -117,6 +117,14 @@ fn print_title(msg: &str) {
 
     let console = Console::new(ColorScheme::default());
     &console << (center, 13, msg);
+
+    let mut console = Console::default();
+    console[ConIndex::Cha(75, 20)] = b'A';
+    console[ConIndex::Col(75, 20)] = 0x0Au8;
+    console[ConIndex::Cha(76, 20)] = b'B';
+    console[ConIndex::Col(76, 20)] = 0x0Bu8;
+    console[ConIndex::Cha(77, 20)] = b'C';
+    console[ConIndex::Col(77, 20)] = 0x0Cu8;
 }
 
 // Regular console usage
