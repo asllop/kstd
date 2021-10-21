@@ -14,10 +14,8 @@ macro_rules! w_println {
 #[macro_export]
 macro_rules! print {
     ($($arg:tt)*) => ({
-        {
-            let mut con = ScreenConsole::default();
-            core::fmt::write(&mut con, format_args!($($arg)*)).unwrap_or(());
-        }
+        let mut con = ScreenConsole::default();
+        core::fmt::write(&mut con, format_args!($($arg)*)).unwrap_or(());
     })
 }
 
