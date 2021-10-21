@@ -8,16 +8,17 @@ pub use macros::*;
 use core::{
     fmt::{
         Write
-    }
+    },
+    default::Default
 };
 
 use crate::sys::KError as Error;
 
-pub trait ConsoleController : Write {
-    fn x(&self) -> usize;
-    fn y(&self) -> usize;
-    fn set_x(&self, x: usize) -> Result<(), Error>;
-    fn set_y(&self, y: usize) -> Result<(), Error>;
-    fn cols(&self) -> usize;
-    fn rows(&self) -> usize;
+pub trait ConsoleController : Write + Default {
+    /// Return X,Y position
+    fn get_xy(&self) -> (usize, usize);
+    /// Set X,Y position
+    fn set_xy(&mut self, x: usize, y: usize) -> Result<(), Error>;
+    /// Get size in Columns, Rows
+    fn get_size(&self) -> (usize, usize);
 }

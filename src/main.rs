@@ -93,7 +93,10 @@ struct TestStruct {
 /// This function is called on panic.
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
-    //print!("{}", info);
+    CON_DEVICE.force_unlock();
+    let mut con = ScreenConsole::new(AnsiColor::BrightWhite, AnsiColor::Red);
+    con.set_xy(0, 0);
+    w_print!(con, "### Kernel {} ###", info);
     loop {}
 }
 
@@ -126,7 +129,7 @@ pub extern "C" fn _start() -> ! {
 fn print_one() {
     let mut con_ctrl = ScreenConsole::default();
     let x = 101;
-    w_println!(con_ctrl, "Number 1 = {}", x);
+    w_println!(con_ctrl, "\nNumber 1 = {}", x);
 }
 
 fn print_two() {
@@ -135,6 +138,12 @@ fn print_two() {
     w_println!(con_ctrl);
     let x = 202;
     w_println!(con_ctrl, "Number 2 = {}", x);
+}
+
+fn _fail() {
+    let a : Option<i32> = None;
+    //panic
+    a.unwrap();
 }
 
 /*

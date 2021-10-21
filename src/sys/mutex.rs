@@ -3,7 +3,7 @@ use core::{
         AtomicUsize, Ordering
     },
     cell::UnsafeCell,
-    ops::{Drop, Deref, DerefMut}
+    ops::{Drop, Deref}
 };
 
 /// Kernel mutex with queuing.
@@ -35,7 +35,8 @@ impl<T> KMutex<T> {
         KLock::new(self)
     }
 
-    fn unlock(&self) {
+    /// Don't call it if you don't know for sure what you are doing!
+    pub fn force_unlock(&self) {
         self.current_num.fetch_add(1, Ordering::SeqCst);
     }
 }
@@ -78,6 +79,6 @@ impl<'a, T> DerefMut for KLock<'a, T> {
 
 impl<'a, T> Drop for KLock<'a, T> {
     fn drop(&mut self) {
-        self.mutex.unlock();
+        self.mutex.force_unlock();
     }
 }

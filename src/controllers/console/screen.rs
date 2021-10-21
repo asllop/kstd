@@ -2,7 +2,8 @@ use core::{
     fmt::{
         Write,
         Error
-    }
+    },
+    default::Default
 };
 
 use crate::devices::{
@@ -94,22 +95,19 @@ impl ScreenConsole<'_> {
 
 impl ConsoleController for ScreenConsole<'_> {
 
-    fn x(&self) -> usize { self.x }
+    fn get_xy(&self) -> (usize, usize) { (self.x, self.y) }
 
-    fn y(&self) -> usize { self.y }
+    //TODO: move cursor
+    fn set_xy(&mut self, x: usize, y: usize) -> Result<(), KError> {
+        self.x = x;
+        self.y = y;
+        Ok(())
+    }
 
-    //TODO
-    fn set_x(&self, x: usize) -> Result<(), KError> { Ok(()) }
-
-    //TODO
-    fn set_y(&self, y: usize) -> Result<(), KError> { Ok(()) }
-
-    fn rows(&self) -> usize { self.rows }
-
-    fn cols(&self) -> usize { self.cols }
+    fn get_size(&self) -> (usize, usize) { (self.cols, self.rows) } 
 }
 
-impl core::default::Default for ScreenConsole<'_> {
+impl Default for ScreenConsole<'_> {
     fn default() -> Self {
         Self::new(AnsiColor::White, AnsiColor::Black)
     }
