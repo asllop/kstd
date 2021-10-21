@@ -9,7 +9,7 @@ use crate::{
         }
     },
     sys::{
-        KMutex as Mutex, KError as Error
+        KMutex as Mutex, KError as Error, Void
     }
 };
 
@@ -64,12 +64,10 @@ pub trait ConsoleDeviceInterface {
 }
 */
 
-type Empty = u8;
-
 /// Console Device
 /// 
-/// Private field is only to prevent anyone from creating a ConsoleDevice from outside this module.
-pub struct ConsoleDevice(PhantomData<Empty>);
+/// Can't be directly instantiated.
+pub struct ConsoleDevice(Void);
 
 /// Public Console Device Interface
 pub static CON_DEVICE : Mutex<ConsoleDevice> = Mutex::new(ConsoleDevice(PhantomData));

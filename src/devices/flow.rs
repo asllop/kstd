@@ -15,7 +15,7 @@ pub trait InputFlow<D, C, R> {
 /// Output Flow trait. For reading data from a device.
 /// 
 /// The generic types are:
-/// * `D` : Data to return. 
+/// * `D` : Data to read.
 /// * `C` : Command to run.
 pub trait OutputFlow<D, C> {
     fn read_cmd(&self, cmd: C) -> Result<D, Error>;
