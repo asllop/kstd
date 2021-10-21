@@ -93,7 +93,7 @@ struct TestStruct {
 /// This function is called on panic.
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
-    CON_DEVICE.force_unlock();
+    CON_DEVICE.reset();
     let mut con = ScreenConsole::new(AnsiColor::BrightWhite, AnsiColor::Red);
     con.set_xy(0, 0);
     w_print!(con, "### Kernel {} ###", info);
@@ -103,6 +103,14 @@ fn panic(info: &PanicInfo) -> ! {
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
     print_one();
+
+    {
+        let mut con = ScreenConsole::default();
+        w_print!(con, "\n\n\n\nHolaaa!!");
+    }
+
+    //_fail();
+
     //print_two();
     /*
     print_title("-- Rust Kernel Test --");

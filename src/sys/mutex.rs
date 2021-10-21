@@ -35,9 +35,17 @@ impl<T> KMutex<T> {
         KLock::new(self)
     }
 
-    /// Don't call it if you don't know for sure what you are doing!
-    pub fn force_unlock(&self) {
-        self.current_num.fetch_add(1, Ordering::SeqCst);
+    fn unlock(&self) {
+        // Only unlock if we are currently locked
+        if self.current_num.load(Ordering::Relaxed) == self.queue_num.load(Ordering::Relaxed) - 1 {
+            self.current_num.fetch_add(1, Ordering::SeqCst);
+        }
+    }
+
+    /// Don't call it directly if you don't know for sure what you are doing!
+    pub fn reset(&self) {
+        self.current_num.store(0, Ordering::Relaxed);
+        self.queue_num.store(0, Ordering::Relaxed);
     }
 }
 
@@ -79,6 +87,6 @@ impl<'a, T> DerefMut for KLock<'a, T> {
 
 impl<'a, T> Drop for KLock<'a, T> {
     fn drop(&mut self) {
-        self.mutex.force_unlock();
+        self.mutex.unlock();
     }
 }
