@@ -34,7 +34,7 @@ pub enum ConsoleType {
 }
 */
 
-pub struct ConsoleDriver<'a> {
+pub struct ConsoleController<'a> {
     cols: usize,
     rows: usize,
     x: usize,
@@ -42,7 +42,7 @@ pub struct ConsoleDriver<'a> {
     console_lock: Lock<'a, ConsoleDevice>
 }
 
-impl ConsoleDriver<'_> {
+impl ConsoleController<'_> {
     pub fn new() -> Self {
         let console_lock = CON_DEVICE.lock();
         let size = console_lock.read_cmd(
@@ -88,7 +88,7 @@ impl ConsoleDriver<'_> {
 
 //TODO: create a buffer and scroll all lines up when a new line happens
 
-impl Write for ConsoleDriver<'_> {
+impl Write for ConsoleController<'_> {
     fn write_str(&mut self, s: &str) -> Result<(), Error> {
         for ch in s.as_bytes() {
             if *ch == 0x0Au8 {

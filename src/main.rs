@@ -69,10 +69,10 @@ use devices::{
     }
 };
 
-mod drivers;
-use drivers::{
+mod controllers;
+use controllers::{
     console:: {
-        ConsoleDriver
+        ConsoleController
     }
 };
 
@@ -99,10 +99,8 @@ fn panic(info: &PanicInfo) -> ! {
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    let mut con_drv = ConsoleDriver::new();
-    println!(con_drv, "Hola!");
-
-    println!(con_drv, "Adeu.");
+    print_one();
+    print_two();
     /*
     print_title("-- Rust Kernel Test --");
     print_count();
@@ -123,6 +121,20 @@ pub extern "C" fn _start() -> ! {
     println!("TEST lock count = {}", TEST.lock().count);
 */
     loop {}
+}
+
+fn print_one() {
+    let mut con_ctrl = ConsoleController::new();
+    let x = 101;
+    println!(con_ctrl, "Number 1 = {}", x);
+}
+
+fn print_two() {
+    let mut con_ctrl = ConsoleController::new();
+    println!(con_ctrl);
+    println!(con_ctrl);
+    let x = 202;
+    println!(con_ctrl, "Number 2 = {}", x);
 }
 
 /*
