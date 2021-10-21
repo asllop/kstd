@@ -13,8 +13,10 @@ use crate::devices::{
 };
 
 use crate::sys::{
-    KMutex as Mutex, KLock as Lock
+    KMutex as Mutex, KLock as Lock, KError
 };
+
+use super::ConsoleController;
 
 /*
 //TODO: define proper socket types
@@ -34,7 +36,7 @@ pub enum ConsoleType {
 }
 */
 
-pub struct ConsoleController<'a> {
+pub struct ScreenConsole<'a> {
     cols: usize,
     rows: usize,
     x: usize,
@@ -44,7 +46,7 @@ pub struct ConsoleController<'a> {
     bg_color: AnsiColor
 }
 
-impl ConsoleController<'_> {
+impl ScreenConsole<'_> {
     pub fn new(text_color: AnsiColor, bg_color: AnsiColor) -> Self {
         let console_lock = CON_DEVICE.lock();
         let size = console_lock.read_cmd(
@@ -64,14 +66,6 @@ impl ConsoleController<'_> {
             panic!("Unexpected result of console command");
         }
     }
-
-    pub fn x(&self) -> usize { self.x }
-
-    pub fn y(&self) -> usize { self.y }
-
-    pub fn rows(&self) -> usize { self.rows }
-
-    pub fn cols(&self) -> usize { self.cols }
 
     fn pos(&self) -> usize {
         self.cols * self.y + self.x
@@ -98,8 +92,24 @@ impl ConsoleController<'_> {
     }
 }
 
+impl ConsoleController for ScreenConsole<'_> {
 
-impl core::default::Default for ConsoleController<'_> {
+    fn x(&self) -> usize { self.x }
+
+    fn y(&self) -> usize { self.y }
+
+    //TODO
+    fn set_x(&self, x: usize) -> Result<(), KError> { Ok(()) }
+
+    //TODO
+    fn set_y(&self, y: usize) -> Result<(), KError> { Ok(()) }
+
+    fn rows(&self) -> usize { self.rows }
+
+    fn cols(&self) -> usize { self.cols }
+}
+
+impl core::default::Default for ScreenConsole<'_> {
     fn default() -> Self {
         Self::new(AnsiColor::White, AnsiColor::Black)
     }
@@ -109,7 +119,7 @@ impl core::default::Default for ConsoleController<'_> {
 //TODO: update cursor position
 //TODO: parse ANSI commands in the string to set colors, etc
 
-impl Write for ConsoleController<'_> {
+impl Write for ScreenConsole<'_> {
     fn write_str(&mut self, s: &str) -> Result<(), Error> {
         for ch in s.as_bytes() {
             if *ch == 0x0Au8 {
