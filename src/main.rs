@@ -126,15 +126,15 @@ pub extern "C" fn _start() -> ! {
 fn print_one() {
     let mut con_ctrl = ConsoleController::new();
     let x = 101;
-    println!(con_ctrl, "Number 1 = {}", x);
+    w_println!(con_ctrl, "Number 1 = {}", x);
 }
 
 fn print_two() {
     let mut con_ctrl = ConsoleController::new();
-    println!(con_ctrl);
-    println!(con_ctrl);
+    w_println!(con_ctrl);
+    w_println!(con_ctrl);
     let x = 202;
-    println!(con_ctrl, "Number 2 = {}", x);
+    w_println!(con_ctrl, "Number 2 = {}", x);
 }
 
 /*
