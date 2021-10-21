@@ -14,35 +14,18 @@ use crate::devices::{
 };
 
 use crate::sys::{
-    KMutex as Mutex, KLock as Lock, KError
+    KLock, KError
 };
 
 use super::ConsoleController;
 
-/*
-//TODO: define proper socket types
-type TcpSocket = ();
-type UdpSocket = ();
-
-/// Console type
-pub enum ConsoleType {
-    /// Screen, using the graphic card
-    Screen,
-    /// Serial port (port number)
-    Serial(usize),
-    /// UDP socket
-    Udp(UdpSocket),
-    /// TCP socket
-    Tcp(TcpSocket)
-}
-*/
-
+/// Screen console controller
 pub struct ScreenConsole<'a> {
     cols: usize,
     rows: usize,
     x: usize,
     y: usize,
-    console_lock: Lock<'a, ConsoleDevice>,
+    console_lock: KLock<'a, ConsoleDevice>,
     text_color: AnsiColor,
     bg_color: AnsiColor
 }

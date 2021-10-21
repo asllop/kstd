@@ -1,2 +1,2 @@
-mod console_device;
-pub use console_device::*;
+mod device;
+pub use device::*;

@@ -9,7 +9,7 @@ use crate::{
         }
     },
     sys::{
-        KMutex as Mutex, KError as Error, Void
+        KMutex, Void
     }
 };
 
@@ -49,20 +49,8 @@ impl Default for ConCmdResult {
     }
 }
 
-// Why the cmd system is better than a static interface like the following?
-// With commands, one arch can give more features that are available to only that arch. We have more flexibility.
-/*
-pub trait ConsoleDeviceInterface {
-    fn print(x: usize, y: usize, tex_color: AnsiColor, bg_color: AnsiColor, ascii: u8) -> Result<(), Error>;
-    fn print_array(x: usize, y: usize, tex_color: AnsiColor, bg_color: AnsiColor, ascii_str: &[u8]) -> Result<(), Error>;
-    fn read(x: usize, y: usize) -> Result<(u8, AnsiColor, AnsiColor), Error>;
-    fn set_cursor(x: usize, y: usize) -> Result<(), Error>;
-    fn get_cursor() -> Result<(usize, usize), Error>;
-    fn enable_cursor() -> Result<(), Error>;
-    fn disable_cursor() -> Result<(), Error>;
-    fn get_size() -> Result<(usize, usize), Error>;
-}
-*/
+// Q: Why the cmd system is better than a static interface (a trait with defined functions)?
+// A: With commands, one arch can give more features that are available to only that arch. We have more flexibility.
 
 /// Console Device
 /// 
@@ -70,4 +58,4 @@ pub trait ConsoleDeviceInterface {
 pub struct ConsoleDevice(Void);
 
 /// Public Console Device Interface
-pub static CON_DEVICE : Mutex<ConsoleDevice> = Mutex::new(ConsoleDevice(PhantomData));
+pub static CON_DEVICE : KMutex<ConsoleDevice> = KMutex::new(ConsoleDevice(PhantomData));

@@ -1,5 +1,5 @@
 use crate::{
-    sys::KError as Error
+    sys::KError
 };
 
 /// Input Flow trait. For writing data to a device.
@@ -9,7 +9,7 @@ use crate::{
 /// * `C` : Command to run.
 /// * `R` : Result to return.
 pub trait InputFlow<D, C, R> {
-    fn write_cmd(&self, cmd: C, data: D) -> Result<R, Error>;
+    fn write_cmd(&self, cmd: C, data: D) -> Result<R, KError>;
 }
 
 /// Output Flow trait. For reading data from a device.
@@ -18,5 +18,5 @@ pub trait InputFlow<D, C, R> {
 /// * `D` : Data to read.
 /// * `C` : Command to run.
 pub trait OutputFlow<D, C> {
-    fn read_cmd(&self, cmd: C) -> Result<D, Error>;
+    fn read_cmd(&self, cmd: C) -> Result<D, KError>;
 }

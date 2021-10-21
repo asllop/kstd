@@ -27,7 +27,7 @@ impl<T> KMutex<T> {
 
     /// Return a lock.
     pub fn lock(&self) -> KLock<T> {
-        //TODO: we could change ordering to relaxed, and disable7enable task switching before/after fetch_add
+        //TODO: we could change ordering to relaxed, and disable/enable task switching before/after fetch_add
         let q_pos = self.queue_num.fetch_add(1, Ordering::SeqCst);
         while self.current_num.load(Ordering::SeqCst) != q_pos {
             //TODO: once task switching is implemented, force switch here
@@ -42,7 +42,7 @@ impl<T> KMutex<T> {
         }
     }
 
-    /// Don't call it directly if you don't know for sure what you are doing!
+    /// Don't call this directly if you don't know for sure what you are doing!
     pub fn reset(&self) {
         self.current_num.store(0, Ordering::Relaxed);
         self.queue_num.store(0, Ordering::Relaxed);

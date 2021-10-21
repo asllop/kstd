@@ -32,14 +32,10 @@
 //! 
 //! # Device Model
 //! 
-//! We need a `Device` trait, that controls each device, with a missage passing interface (`DeviceMessage` trait and `DeviceResponse` trait) that is something like ioctl.
+//! Two parts:
 //! 
-//! Then we need a `Driver` trait, that is the real interface the apps will use.
-//! 
-//! Drivers talk to Devices. Drivers are arch independant, Devices are arch dependant. One Driver can be used to talk to multiple Devices, for example: the ConsoleDriver could use the VideoDevice + KeyboardDevice or the SerialDevice.
-//! 
-//! We could have a pluggable interface for Inputs and Outputs, so we can configure drivers to work with any combination of devices, without having to be aware of which device it is. Maybe a series of traits: `InputFlow`, `OutputFlow`, `BidiFlow`.<br>
-//! We could use it to create complex flow chains: a ConsoleDriver that reads input from a KeyboardDevice, but sends the output to a TcpDriver that in turn sends it to the SlipDriver that sends it to the SerialDevice.
+//! - Devices, are arch dependant and control directly the HW. They implement traits [`InputFlow`] and [`OutputFlow`] to interact.
+//! - Controllers, are arch independant, they use devices to access thr HW. They implement traits for their specific usage: [`ConsoleController`], etc.
 //! 
 
 
