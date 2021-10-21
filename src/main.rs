@@ -49,6 +49,7 @@
 use core::panic::PanicInfo;
 use core::fmt;
 
+/*
 #[macro_use]
 mod console;
 use console::*;
@@ -58,6 +59,7 @@ use counter_future::*;
 
 use core::sync::atomic::Ordering;
 use core::sync::atomic::AtomicI32;
+*/
 
 mod devices;
 use devices::{
@@ -67,26 +69,41 @@ use devices::{
     }
 };
 
+mod drivers;
+use drivers::{
+    console:: {
+        ConsoleDriver
+    }
+};
+
 mod sys;
 use sys::{
     KMutex, KLock
 };
 
+/*
 static TEST : KMutex<TestStruct> = KMutex::new(TestStruct { count: 0, buf: [0;32] });
 
 struct TestStruct {
     count: usize,
     buf: [u8 ; 32]
 }
+*/
 
 /// This function is called on panic.
 #[panic_handler]
-fn panic(_info: &PanicInfo) -> ! {
+fn panic(info: &PanicInfo) -> ! {
+    //print!("{}", info);
     loop {}
 }
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
+    let mut con_drv = ConsoleDriver::new();
+    println!(con_drv, "Hola!");
+
+    println!(con_drv, "Adeu.");
+    /*
     print_title("-- Rust Kernel Test --");
     print_count();
     println!("MT my_val {}", MT.my_val.load(Ordering::SeqCst));
@@ -104,10 +121,11 @@ pub extern "C" fn _start() -> ! {
     ).unwrap_or_default();
 
     println!("TEST lock count = {}", TEST.lock().count);
-
+*/
     loop {}
 }
 
+/*
 // Experimental console usage
 fn print_title(msg: &str) {
     let center = 40 - msg.len() / 2;
@@ -134,3 +152,4 @@ fn print_count() {
     }
     println!();
 }
+*/
