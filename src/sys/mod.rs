@@ -1,4 +1,4 @@
-//! System wide definitions.
+//! System wide utilities.
 
 mod mutex;
 pub use mutex::*;

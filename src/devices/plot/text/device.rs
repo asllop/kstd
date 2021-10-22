@@ -16,7 +16,7 @@ use crate::{
 };
 
 /// Plot text device interface trait. All plot text devices must implement it.
-pub trait PlotTextDeviceApi {
+pub trait PlotTextDevice {
 
     /// Print one char with color at X,Y position
     /// 

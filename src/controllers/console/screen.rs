@@ -17,7 +17,7 @@ use crate::{
     devices::{
         plot::{
             text::{
-                ScreenTextDevice, STDOUT_DEVICE, PlotTextDeviceApi
+                ScreenTextDevice, STDOUT_DEVICE, PlotTextDevice
             }
         }
     }

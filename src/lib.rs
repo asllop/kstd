@@ -33,12 +33,14 @@
 //! 
 //! Drawbacks can be mitigated by chosing convenient segment and bucket sizes.
 //! 
-//! # Device Model
+//! # Drivers
 //! 
-//! Two parts:
+//! Drivers are splitted into 2 parts:
 //! 
-//! - Devices, are arch dependant and control directly the HW. They implement API traits to interact.
-//! - Controllers, are arch independant, they use devices to access thr HW. They implement traits for their specific usage: [`ConsoleController`], etc.
+//! - Devices access hardware directly. They usually only offer very low level features, directly support by the underlying hardware. They implement API traits for interaction with the external world, like [`PlotTextDevice`][`devices::plot::text::PlotTextDevice`].
+//! - Controllers are arch independant and they use devices as an abstraction layer to control the hardware. They implement traits to offer a standard interface to users, like [`ConsoleController`].
+//! 
+//! Users should generally access controllers, because they offer a higher abstraction level and more features. Only use devices directly whenever you have a very specific and low level requirement.
 //! 
 
 #![no_std]

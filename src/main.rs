@@ -2,7 +2,7 @@
 #![no_std]
 
 use thek::{
-    print, println, w_print, w_println,
+    print, println, w_print,
     controllers::console::{
         ansi::AnsiColor,
         ScreenConsoleController, ConsoleController

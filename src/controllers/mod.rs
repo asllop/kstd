@@ -1,3 +1,3 @@
-//! Hardware constrollers.
+//! Device constrollers.
 
 pub mod console;

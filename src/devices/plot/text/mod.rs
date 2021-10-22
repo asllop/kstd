@@ -2,7 +2,7 @@
 
 //TODO: put each arch dependant ConsoleDevice implementation into a different module and compile conditionally
 //TODO: use cargo features
-pub mod plat_pc;
+pub mod arch_pc;
 
 mod device;
 pub use device::*;
