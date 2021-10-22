@@ -3,11 +3,7 @@
 
 use blog_os::{
     print, println,
-    controllers::{
-        console:: {
-            ScreenConsole
-        }
-    }
+    controllers::console::ScreenConsole
 };
 
 #[no_mangle]
