@@ -1,7 +1,7 @@
 #![no_main]
 #![no_std]
 
-use blog_os::{
+use thek::{
     print, println,
     controllers::console::ScreenConsole
 };
