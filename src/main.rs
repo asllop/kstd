@@ -3,7 +3,7 @@
 
 use thek::{
     print, println,
-    controllers::console::ScreenConsole
+    controllers::console::ScreenConsoleController
 };
 
 #[no_mangle]

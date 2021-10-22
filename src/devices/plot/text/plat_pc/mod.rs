@@ -1,14 +1,22 @@
+//! PC platform console device.
+
 use core::{
     convert::From
 };
 
 use crate::{
     devices::{
+        plot::{
+            text::{
+                ScreenTextDevice, PlotTextDeviceApi
+            }
+        }
+    },
+    controllers::{
         console::{
             ansi::{
                 AnsiColor
-            },
-            ConsoleDevice, ConsoleDeviceApi
+            }
         }
     },
     sys::KError,
@@ -122,7 +130,7 @@ impl From<u8> for VgaConsoleColor {
 const CONSOLE_COLS : usize = 80;
 const CONSOLE_ROWS : usize = 25;
 
-impl ConsoleDeviceApi for ConsoleDevice {
+impl PlotTextDeviceApi for ScreenTextDevice {
     fn print(&self, x: usize, y: usize, text_color: AnsiColor, bg_color: AnsiColor, ch: u8) -> Result<(), KError> {
         if x < CONSOLE_COLS && y < CONSOLE_ROWS {
             let pos = CONSOLE_COLS * y + x;

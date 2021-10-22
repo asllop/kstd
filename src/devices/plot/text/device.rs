@@ -3,7 +3,7 @@ use core::{
 };
 
 use crate::{
-    devices::{
+    controllers::{
         console::{
             ansi::{
                 AnsiColor
@@ -15,8 +15,8 @@ use crate::{
     }
 };
 
-/// Console device interface trait. All console devices must implement it.
-pub trait ConsoleDeviceApi {
+/// Plot text device interface trait. All plot text devices must implement it.
+pub trait PlotTextDeviceApi {
 
     /// Print one char with color at X,Y position
     /// 
@@ -48,10 +48,10 @@ pub trait ConsoleDeviceApi {
     fn get_size(&self) -> Result<(usize, usize), KError>;
 }
 
-/// Console Device
+/// Screen text device.
 /// 
 /// Can't be directly instantiated.
-pub struct ConsoleDevice(Void);
+pub struct ScreenTextDevice(Void);
 
-/// Public Console Device Interface
-pub static CON_DEVICE : KMutex<ConsoleDevice> = KMutex::new(ConsoleDevice(PhantomData));
+/// Public stdout device.
+pub static STDOUT_DEVICE : KMutex<ScreenTextDevice> = KMutex::new(ScreenTextDevice(PhantomData));

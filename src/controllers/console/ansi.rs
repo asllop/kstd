@@ -1,6 +1,8 @@
+//! ANSI commands.
+
 /// Define an ANSI color
 /// 
-/// More info about ANSI colors: https://en.wikipedia.org/wiki/ANSI_escape_code#Colors
+/// More info about ANSI colors: <https://en.wikipedia.org/wiki/ANSI_escape_code#Colors>
 #[derive(Copy, Clone)]
 pub enum AnsiColor {
     // Basic terminals

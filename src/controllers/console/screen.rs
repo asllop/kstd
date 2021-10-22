@@ -6,12 +6,20 @@ use core::{
     default::Default
 };
 
-use crate::devices::{
-    console::{
-        ansi::{
-            AnsiColor
-        },
-        ConsoleDevice, CON_DEVICE, ConsoleDeviceApi
+use crate::{
+    controllers::{
+        console::{
+            ansi::{
+                AnsiColor
+            }
+        }
+    },
+    devices::{
+        plot::{
+            text::{
+                ScreenTextDevice, STDOUT_DEVICE, PlotTextDeviceApi
+            }
+        }
     }
 };
 
@@ -22,19 +30,19 @@ use crate::sys::{
 use super::ConsoleController;
 
 /// Screen console controller
-pub struct ScreenConsole<'a> {
+pub struct ScreenConsoleController<'a> {
     cols: usize,
     rows: usize,
     x: usize,
     y: usize,
-    console_lock: KLock<'a, ConsoleDevice>,
+    console_lock: KLock<'a, ScreenTextDevice>,
     text_color: AnsiColor,
     bg_color: AnsiColor
 }
 
-impl ScreenConsole<'_> {
+impl ScreenConsoleController<'_> {
     pub fn new(text_color: AnsiColor, bg_color: AnsiColor) -> Self {
-        let console_lock = CON_DEVICE.lock();
+        let console_lock = STDOUT_DEVICE.lock();
         console_lock.enable_cursor().unwrap_or(());
         let (cols, rows) = console_lock.get_size().unwrap_or((0,0));
         let (x, y) = console_lock.get_cursor().unwrap_or((0,0));
@@ -71,7 +79,7 @@ impl ScreenConsole<'_> {
     }
 }
 
-impl ConsoleController for ScreenConsole<'_> {
+impl ConsoleController for ScreenConsoleController<'_> {
 
     fn get_xy(&self) -> (usize, usize) { (self.x, self.y) }
 
@@ -89,7 +97,7 @@ impl ConsoleController for ScreenConsole<'_> {
     fn get_size(&self) -> (usize, usize) { (self.cols, self.rows) } 
 }
 
-impl Default for ScreenConsole<'_> {
+impl Default for ScreenConsoleController<'_> {
     fn default() -> Self {
         Self::new(AnsiColor::White, AnsiColor::Black)
     }
@@ -98,7 +106,7 @@ impl Default for ScreenConsole<'_> {
 //TODO: create a buffer and scroll all lines up when a new line happens
 //TODO: parse ANSI commands in the string to set colors, etc
 
-impl Write for ScreenConsole<'_> {
+impl Write for ScreenConsoleController<'_> {
     fn write_str(&mut self, s: &str) -> Result<(), Error> {
         for ch in s.as_bytes() {
             if *ch == 0x0Au8 {

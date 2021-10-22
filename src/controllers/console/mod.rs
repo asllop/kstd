@@ -7,6 +7,8 @@ pub use screen::*;
 mod macros;
 pub use macros::*;
 
+pub mod ansi;
+
 use core::{
     fmt::{
         Write
