@@ -134,9 +134,31 @@ impl ConsoleDeviceApi for ConsoleDevice {
         }
     }
 
+    fn set_char(&self, x: usize, y: usize, ch: u8) -> Result<(), KError> {
+        if x < CONSOLE_COLS && y < CONSOLE_ROWS {
+            let pos = CONSOLE_COLS * y + x;
+            unsafe {
+                *((0xB8000 + pos * 2) as *mut u8) = ch;
+            }
+            Ok(())
+        }
+        else {
+            Err(KError::OutBounds)
+        }
+    }
+
     fn set_color(&self, x: usize, y: usize, text_color: AnsiColor, bg_color: AnsiColor) -> Result<(), KError> {
-        //TODO
-        Ok(())
+        if x < CONSOLE_COLS && y < CONSOLE_ROWS {
+            let pos = CONSOLE_COLS * y + x;
+            unsafe {
+                let color = ((VgaConsoleColor::from(bg_color) as u8) << 4) | (VgaConsoleColor::from(text_color) as u8);
+                *((0xB8000 + pos * 2 + 1) as *mut u8) = color;
+            }
+            Ok(())
+        }
+        else {
+            Err(KError::OutBounds)
+        }
     }
 
     fn read(&self, x: usize, y: usize) -> Result<(u8, AnsiColor, AnsiColor), KError> {

@@ -14,6 +14,7 @@ use core::{
 
 use crate::sys::KError;
 
+/// Console controller trait. All console controllers must implement it.
 pub trait ConsoleController : Write + Default {
     /// Return X,Y position
     fn get_xy(&self) -> (usize, usize);

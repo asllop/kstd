@@ -103,7 +103,7 @@ pub extern "C" fn _start() -> ! {
     print!("Hola");
     print_one();
     print_two();
-    print_count();
+    //print_count();
     print!("Adeu!");
 
     //_fail();
@@ -139,7 +139,7 @@ fn print_one() {
 
 fn print_two() {
     let x = 202;
-    println!("\n\n\nNumber 2 = {}", x);
+    println!("\nNumber 2 = {}", x);
 }
 
 fn _fail() {

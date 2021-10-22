@@ -75,9 +75,10 @@ impl ConsoleController for ScreenConsole<'_> {
     fn set_xy(&mut self, x: usize, y: usize) -> Result<(), KError> {
         self.x = x;
         self.y = y;
-        //TODO: get position colors, if 0,0, then set default, if not 0,0, just move cursor
-        //TODO: create command SetColor, only changes color part of video memory
-        self.console_lock.print(x, y, self.text_color, self.bg_color, b' ')?;
+        let (_, text_color, bg_color) = self.console_lock.read(x, y)?;
+        if let (AnsiColor::Black, AnsiColor::Black) = (text_color, bg_color) {
+            self.console_lock.set_color(x, y, self.text_color, self.bg_color)?;
+        }
         self.console_lock.set_cursor(x, y)?;
         Ok(())
     }

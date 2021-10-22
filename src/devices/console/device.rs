@@ -17,26 +17,14 @@ use crate::{
 pub trait ConsoleDeviceApi {
 
     /// Print one char with color at X,Y position
+    /// 
+    /// Must NOT update cursor, this should be done in the controller.
     fn print(&self, x: usize, y: usize, text_color: AnsiColor, bg_color: AnsiColor, ch: u8) -> Result<(), KError>;
 
-    /// Print a string with color into X,Y position
-    fn print_array(&self, mut x: usize, mut y: usize, text_color: AnsiColor, bg_color: AnsiColor, ch_array: &[u8]) -> Result<(), KError> {
-        let (cols, rows) = self.get_size()?;
-        for ch in ch_array {
-            self.print(x, y, text_color, bg_color, *ch)?;
-            x += 1;
-            if x >= cols {
-                x = 0;
-                y += 1;
-            }
-            if y >= rows {
-                y = 0;
-            }
-        }
-        Ok(())
-    }
+    /// Set character at X,Y position, not changing the color.
+    fn set_char(&self, x: usize, y: usize, ch: u8) -> Result<(), KError>;
 
-    /// Set color at X,Y position
+    /// Set color at X,Y position, not changing the character.
     fn set_color(&self, x: usize, y: usize, text_color: AnsiColor, bg_color: AnsiColor) -> Result<(), KError>;
 
     /// Read char and color at X,Y position
