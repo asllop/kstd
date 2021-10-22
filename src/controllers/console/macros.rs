@@ -1,3 +1,4 @@
+/// Print format using writer
 #[macro_export]
 macro_rules! w_print {
     ($writer:ident, $($arg:tt)*) => ({
@@ -5,12 +6,14 @@ macro_rules! w_print {
     })
 }
 
+/// Print newline ended format using writer
 #[macro_export]
 macro_rules! w_println {
     ($writer:ident) => (w_print!($writer, "\n"));
     ($writer:ident, $($arg:tt)*) => (w_print!($writer, "{}\n", format_args!($($arg)*)));
 }
 
+/// Print format to stdout
 #[macro_export]
 macro_rules! print {
     ($($arg:tt)*) => ({
@@ -19,6 +22,7 @@ macro_rules! print {
     })
 }
 
+/// Print newline ended format to stdout
 #[macro_export]
 macro_rules! println {
     () => (print!("\n"));

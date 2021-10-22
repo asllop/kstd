@@ -1,4 +1,7 @@
-//!
+//! # Introduction
+//! 
+//! `TheK` is a unikernel specially designed to offer support to Rust `std`.
+//! 
 //! # Memory Management
 //! 
 //! Pool of Segments: it's a variation of the bitmaps memory management system.

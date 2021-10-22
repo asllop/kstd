@@ -14,6 +14,7 @@ use crate::{
     }
 };
 
+/// Vga console colors
 #[derive(Copy, Clone)]
 #[repr(u8)]
 pub enum VgaConsoleColor {

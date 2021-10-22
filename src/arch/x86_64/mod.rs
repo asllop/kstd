@@ -1,3 +1,4 @@
+/// Input byte from port
 #[cfg(any(target_arch = "x86_64"))]
 pub fn inb(port: u16) -> u8 {
     let r: u8;
@@ -7,6 +8,7 @@ pub fn inb(port: u16) -> u8 {
     r
 }
 
+/// Output byte to port
 #[cfg(any(target_arch = "x86_64"))]
 pub fn outb(port: u16, data: u8) {
     unsafe {
