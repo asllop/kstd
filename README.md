@@ -1,10 +1,10 @@
 # TheK
 
-Unikernel specifically design to serve as a backend for Rust std.
+Unikernel specifically designed to serve as a backend for Rust std.
 
 # Build
 
-First install rustc nightly and some components. Run this inside project's dir:
+First run the following commands inside your project's folder:
 
 ```
 $ rustup override set nightly
