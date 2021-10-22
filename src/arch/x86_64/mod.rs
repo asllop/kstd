@@ -1,6 +1,10 @@
 #[cfg(any(target_arch = "x86_64"))]
-pub fn inb() {
-    //TODO
+pub fn inb(port: u16) -> u8 {
+    let r: u8;
+    unsafe {
+        asm!("in al, dx", out("al") r, in("dx") port);
+    }
+    r
 }
 
 #[cfg(any(target_arch = "x86_64"))]

@@ -101,14 +101,12 @@ fn panic(info: &PanicInfo) -> ! {
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
+    print!("Hola");
     print_one();
-
-    {
-        let mut con = ScreenConsole::default();
-        con.set_xy(40, 12);
-        w_print!(con, "\n\n\n\nHolaaa!!");
-    }
-
+    print_two();
+    print_count();
+    print!("Adeu!");
+    
     //_fail();
 
     //print_two();
@@ -137,7 +135,6 @@ pub extern "C" fn _start() -> ! {
 fn print_one() {
     let x = 101;
     println!("---->");
-    print_two();
     println!("\nNumber 1 = {}", x);
 }
 
@@ -171,12 +168,10 @@ fn print_title(msg: &str) {
     console[ConIndex::Cha(77, 20)] = b'C';
     console[ConIndex::Col(77, 20)] = 0x0Cu8;
 }
-
+*/
 // Regular console usage
 fn print_count() {
     for i in 0..10 {
         println!("Counter {}", i);
     }
-    println!();
 }
-*/

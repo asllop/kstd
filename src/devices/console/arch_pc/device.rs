@@ -217,8 +217,14 @@ impl OutputFlow<ConCmdResult, ConCmd> for ConsoleDevice {
                 }
             },
             ConCmd::GetCursor => {
-                //TODO
-                Ok(ConCmdResult::Pos(0,0))
+                let mut pos : u16 = 0;
+                outb(0x3D4, 0x0F);
+                pos |= inb(0x3D5) as u16;
+                outb(0x3D4, 0x0E);
+                pos |= (inb(0x3D5) as u16) << 8;
+                let y = (pos / 80) as usize;
+                let x = (pos % 80) as usize;
+                Ok(ConCmdResult::Pos(x, y))
             },
             ConCmd::GetSize => {
                 Ok(ConCmdResult::Size(80, 25))
