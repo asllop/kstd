@@ -9,48 +9,54 @@ use crate::{
         }
     },
     sys::{
-        KMutex, Void
+        KMutex, KError, Void
     }
 };
 
-/// Console Commands
-pub enum ConCmd {
-    /// Print at position (X,Y) with text color and background color
-    Print(usize, usize, AnsiColor, AnsiColor),
-    /// Read from position (X,Y)
-    Read(usize, usize),
-    /// Set cursor at position (X,Y)
-    SetCursor(usize, usize),
-    /// Set Get cursor position
-    GetCursor,
-    /// Enable cursor
-    EnableCursor,
-    /// Disable cursor
-    DisableCursor,
-    /// Get console size in rows and columns
-    GetSize
-}
+/// Console device interface trait. All console devices must implement it.
+pub trait ConsoleDeviceApi {
 
-/// Console Command Result
-pub enum ConCmdResult {
-    /// New cursor position (X,Y)
-    Pos(usize, usize),
-    /// ASCII character with text and background colors
-    Character(u8, AnsiColor, AnsiColor),
-    /// Console size in Columns, Rows
-    Size(usize, usize),
-    /// No result
-    None
-}
+    /// Print one char with color at X,Y position
+    fn print(&self, x: usize, y: usize, text_color: AnsiColor, bg_color: AnsiColor, ch: u8) -> Result<(), KError>;
 
-impl Default for ConCmdResult {
-    fn default() -> Self {
-        Self::None
+    /// Print a string with color into X,Y position
+    fn print_array(&self, mut x: usize, mut y: usize, text_color: AnsiColor, bg_color: AnsiColor, ch_array: &[u8]) -> Result<(), KError> {
+        let (cols, rows) = self.get_size()?;
+        for ch in ch_array {
+            self.print(x, y, text_color, bg_color, *ch)?;
+            x += 1;
+            if x >= cols {
+                x = 0;
+                y += 1;
+            }
+            if y >= rows {
+                y = 0;
+            }
+        }
+        Ok(())
     }
-}
 
-// Q: Why the cmd system is better than a static interface (a trait with defined functions)?
-// A: With commands, one arch can give more features that are available to only that arch. We have more flexibility. We also don't need to care about mutable/immutable refs.
+    /// Set color at X,Y position
+    fn set_color(&self, x: usize, y: usize, text_color: AnsiColor, bg_color: AnsiColor) -> Result<(), KError>;
+
+    /// Read char and color at X,Y position
+    fn read(&self, x: usize, y: usize) -> Result<(u8, AnsiColor, AnsiColor), KError>;
+
+    /// Set cursor X,Y position
+    fn set_cursor(&self, x: usize, y: usize) -> Result<(), KError>;
+
+    /// Get cursor X,Y position
+    fn get_cursor(&self) -> Result<(usize, usize), KError>;
+
+    /// Enable cursor (set visible)
+    fn enable_cursor(&self) -> Result<(), KError>;
+
+    /// Disable cursor (set invisible)
+    fn disable_cursor(&self) -> Result<(), KError>;
+
+    /// Get console size in Columns,Rows
+    fn get_size(&self) -> Result<(usize, usize), KError>;
+}
 
 /// Console Device
 /// 

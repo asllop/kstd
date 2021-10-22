@@ -7,9 +7,8 @@ use core::{
 };
 
 use crate::devices::{
-    InputFlow, OutputFlow,
     console::{
-        ConCmd, ConCmdResult, ConsoleDevice, CON_DEVICE, AnsiColor
+        ConsoleDevice, CON_DEVICE, AnsiColor, ConsoleDeviceApi
     }
 };
 
@@ -33,28 +32,14 @@ pub struct ScreenConsole<'a> {
 impl ScreenConsole<'_> {
     pub fn new(text_color: AnsiColor, bg_color: AnsiColor) -> Self {
         let console_lock = CON_DEVICE.lock();
-        let size = console_lock.read_cmd(
-            ConCmd::GetSize
-        ).unwrap_or(ConCmdResult::Size(0,0));
-        let pos = console_lock.read_cmd(
-            ConCmd::GetCursor
-        ).unwrap_or(ConCmdResult::Pos(0,0));
-        if let ConCmdResult::Size(cols, rows) = size {
-            if let ConCmdResult::Pos(x, y) = pos {
-                Self {
-                    cols, rows,
-                    x, y,
-                    console_lock,
-                    text_color,
-                    bg_color
-                }
-            }
-            else {
-                panic!("Unexpected result of `GetSize` console command");
-            }
-        }
-        else {
-            panic!("Unexpected result of `GetCursor` console command");
+        let (cols, rows) = console_lock.get_size().unwrap_or((0,0));
+        let (x, y) = console_lock.get_cursor().unwrap_or((0,0));
+        Self {
+            cols, rows,
+            x, y,
+            console_lock,
+            text_color,
+            bg_color
         }
     }
 
@@ -88,24 +73,13 @@ impl ConsoleController for ScreenConsole<'_> {
     fn get_xy(&self) -> (usize, usize) { (self.x, self.y) }
 
     fn set_xy(&mut self, x: usize, y: usize) -> Result<(), KError> {
-        if x < 80 && y < 25 {
-            self.x = x;
-            self.y = y;
-            //TODO: get position colors, if 0,0, then set default, if not 0,0, just move cursor
-            //TODO: create command SetColor, only changes color part of video memory
-            self.console_lock.write_cmd(
-                ConCmd::Print(x, y, self.text_color, self.bg_color),
-                b' '
-            ).unwrap_or_default();
-            self.console_lock.write_cmd(
-                ConCmd::SetCursor(x, y),
-                ()
-            ).unwrap_or(ConCmdResult::None);
-            Ok(())
-        }
-        else {
-            Err(KError::OutBounds)
-        }
+        self.x = x;
+        self.y = y;
+        //TODO: get position colors, if 0,0, then set default, if not 0,0, just move cursor
+        //TODO: create command SetColor, only changes color part of video memory
+        self.console_lock.print(x, y, self.text_color, self.bg_color, b' ')?;
+        self.console_lock.set_cursor(x, y)?;
+        Ok(())
     }
 
     fn get_size(&self) -> (usize, usize) { (self.cols, self.rows) } 
@@ -127,11 +101,9 @@ impl Write for ScreenConsole<'_> {
                 self.line_break();
             }
             else {
-                self.console_lock.write_cmd(
-                    //TODO: get color from ANSI commands
-                    ConCmd::Print(self.x, self.y, self.text_color, self.bg_color),
-                    *ch
-                ).unwrap_or_default();
+                if let Err(_) = self.console_lock.print(self.x, self.y, self.text_color, self.bg_color, *ch) {
+                    return Err(Error);
+                }
                 self.inc_pos();
             }
         }

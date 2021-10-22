@@ -34,7 +34,7 @@
 //! 
 //! Two parts:
 //! 
-//! - Devices, are arch dependant and control directly the HW. They implement traits [`InputFlow`] and [`OutputFlow`] to interact.
+//! - Devices, are arch dependant and control directly the HW. They implement API traits to interact.
 //! - Controllers, are arch independant, they use devices to access thr HW. They implement traits for their specific usage: [`ConsoleController`], etc.
 //! 
 
@@ -62,9 +62,8 @@ mod arch;
 
 mod devices;
 use devices::{
-    InputFlow, OutputFlow,
     console::{
-        ConCmd, ConsoleDevice, CON_DEVICE, AnsiColor
+        ConsoleDevice, ConsoleDeviceApi, CON_DEVICE, AnsiColor
     }
 };
 
@@ -106,7 +105,7 @@ pub extern "C" fn _start() -> ! {
     print_two();
     print_count();
     print!("Adeu!");
-    
+
     //_fail();
 
     //print_two();
