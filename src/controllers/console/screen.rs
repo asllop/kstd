@@ -108,7 +108,9 @@ impl Write for ScreenConsole<'_> {
                 self.inc_pos();
             }
         }
-        self.set_xy(self.x, self.y);
+        if let Err(_) = self.set_xy(self.x, self.y) {
+            return Err(Error);
+        }
         Ok(())
     }
 }
