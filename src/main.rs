@@ -2,8 +2,11 @@
 #![no_std]
 
 use thek::{
-    print, println,
-    controllers::console::ScreenConsoleController
+    print, println, w_print, w_println,
+    controllers::console::{
+        ansi::AnsiColor,
+        ScreenConsoleController, ConsoleController
+    }
 };
 
 #[no_mangle]
@@ -18,6 +21,13 @@ fn main() {
     print_two();
     print_count(1);
     print!("Adeu!");
+    println!();
+
+    {
+        let mut con = ScreenConsoleController::new(AnsiColor::BrightWhite, AnsiColor::BrightBlue);
+        con.set_xy(34, 12).unwrap_or_default();
+        w_print!(con, "<<< The K >>>");
+    }
 
     //_fail_unwrap();
     //_fail_index();
