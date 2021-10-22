@@ -47,6 +47,7 @@ fn _fail_unwrap() {
 }
 
 fn _fail_index() {
+    // Read data from raw memory to avoid rust detecting index out of bounds at compile time
     let i = unsafe {
         *(0xB8000 as *mut u8)
     };

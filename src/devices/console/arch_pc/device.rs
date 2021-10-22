@@ -213,12 +213,18 @@ impl ConsoleDeviceApi for ConsoleDevice {
     }
 
     fn enable_cursor(&self) -> Result<(), KError> {
-        //TODO
+        let cursor_start = 14u8;
+        let cursor_end = 15u8;
+        outb(0x3D4, 0x0A);
+        outb(0x3D5, (inb(0x3D5) & 0xC0) | cursor_start);
+        outb(0x3D4, 0x0B);
+        outb(0x3D5, (inb(0x3D5) & 0xE0) | cursor_end);
         Ok(())
     }
 
     fn disable_cursor(&self) -> Result<(), KError> {
-        //TODO
+        outb(0x3D4, 0x0A);
+        outb(0x3D5, 0x20);
         Ok(())
     }
 
