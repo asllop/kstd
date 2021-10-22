@@ -42,6 +42,14 @@
 //! 
 //! Users should generally access controllers, because they offer a higher abstraction level and more features. Only use devices directly whenever you have a very specific and low level requirement.
 //! 
+//! # Next steps:
+//! 
+//! - Explore OS dependencies to build std.
+//! - Implement memory management.
+//! - Implement multithreading.
+//! - Implement async (optional).
+//! - Explore UEFI support of keyboard input, filesystem and network.
+//! - Implement USB driver.
 
 #![no_std]
 #![feature(asm)]
