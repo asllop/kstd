@@ -1,3 +1,5 @@
+//! Functions for x86_64 architecture.
+
 /// Input byte from port
 #[cfg(any(target_arch = "x86_64"))]
 pub fn inb(port: u16) -> u8 {

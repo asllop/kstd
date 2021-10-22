@@ -1,3 +1,5 @@
+//! Console constrollers.
+
 mod screen;
 pub use screen::*;
 

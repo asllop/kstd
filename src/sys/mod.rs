@@ -1,3 +1,5 @@
+//! System wide definitions.
+
 mod mutex;
 pub use mutex::*;
 
