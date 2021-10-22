@@ -1,7 +1,6 @@
 //! Console device.
 
-mod ansi;
-pub use ansi::*;
+pub mod ansi;
 
 mod device;
 pub use device::*;
@@ -9,4 +8,3 @@ pub use device::*;
 //TODO: put each arch dependant ConsoleDevice implementation into a different module and compile conditionally
 //TODO: use cargo features
 pub mod arch_pc;
-//pub use arch_pc::*;

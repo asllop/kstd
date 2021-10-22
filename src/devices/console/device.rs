@@ -5,7 +5,9 @@ use core::{
 use crate::{
     devices::{
         console::{
-            AnsiColor
+            ansi::{
+                AnsiColor
+            }
         }
     },
     sys::{

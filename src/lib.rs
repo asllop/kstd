@@ -57,7 +57,10 @@ use controllers::console::{
 };
 
 use devices::console::{
-    AnsiColor, CON_DEVICE
+    ansi::{
+        AnsiColor
+    },
+    CON_DEVICE
 };
 
 use core::panic::PanicInfo;

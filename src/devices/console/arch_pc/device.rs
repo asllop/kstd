@@ -5,7 +5,10 @@ use core::{
 use crate::{
     devices::{
         console::{
-            AnsiColor, ConsoleDevice, ConsoleDeviceApi
+            ansi::{
+                AnsiColor
+            },
+            ConsoleDevice, ConsoleDeviceApi
         }
     },
     sys::KError,

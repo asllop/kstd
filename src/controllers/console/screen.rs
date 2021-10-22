@@ -8,7 +8,10 @@ use core::{
 
 use crate::devices::{
     console::{
-        ConsoleDevice, CON_DEVICE, AnsiColor, ConsoleDeviceApi
+        ansi::{
+            AnsiColor
+        },
+        ConsoleDevice, CON_DEVICE, ConsoleDeviceApi
     }
 };
 
