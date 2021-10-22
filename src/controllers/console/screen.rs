@@ -88,19 +88,24 @@ impl ConsoleController for ScreenConsole<'_> {
     fn get_xy(&self) -> (usize, usize) { (self.x, self.y) }
 
     fn set_xy(&mut self, x: usize, y: usize) -> Result<(), KError> {
-        self.x = x;
-        self.y = y;
-        //TODO: get position colors, if 0,0, then set default, if not 0,0, just move cursor
-        //TODO: create command SetColor, only changes color part of video memory
-        self.console_lock.write_cmd(
-            ConCmd::Print(x, y, self.text_color, self.bg_color),
-            b' '
-        ).unwrap_or_default();
-        self.console_lock.write_cmd(
-            ConCmd::SetCursor(x, y),
-            ()
-        ).unwrap_or(ConCmdResult::None);
-        Ok(())
+        if x < 80 && y < 25 {
+            self.x = x;
+            self.y = y;
+            //TODO: get position colors, if 0,0, then set default, if not 0,0, just move cursor
+            //TODO: create command SetColor, only changes color part of video memory
+            self.console_lock.write_cmd(
+                ConCmd::Print(x, y, self.text_color, self.bg_color),
+                b' '
+            ).unwrap_or_default();
+            self.console_lock.write_cmd(
+                ConCmd::SetCursor(x, y),
+                ()
+            ).unwrap_or(ConCmdResult::None);
+            Ok(())
+        }
+        else {
+            Err(KError::OutBounds)
+        }
     }
 
     fn get_size(&self) -> (usize, usize) { (self.cols, self.rows) } 
