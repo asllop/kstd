@@ -71,7 +71,7 @@ use core::panic::PanicInfo;
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     STDOUT_DEVICE.reset();
-    let mut con =  ScreenConsoleController::new(AnsiColor::BrightWhite, AnsiColor::Red);
+    let mut con = ScreenConsoleController::new(AnsiColor::BrightWhite, AnsiColor::Red);
     con.set_xy(0, 0).unwrap_or_default();
     w_print!(con, "### Kernel {} ###", info);
     loop {}

@@ -24,3 +24,9 @@ This will generate a bootable image you can run with QEMU:
 ```
 $ sh run_kernel.sh
 ```
+
+Rust nightly compiler can be unstable and crash sometimes. In rare cases you will need to regenerate the project:
+
+```
+$ cargo clean
+```

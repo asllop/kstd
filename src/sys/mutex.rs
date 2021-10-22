@@ -42,7 +42,9 @@ impl<T> KMutex<T> {
         }
     }
 
-    /// Don't call this directly if you don't know for sure what you are doing!
+    /// Reset queue.
+    /// 
+    /// `WARNING`: Don't call it unless you know very well what you are doing!
     pub fn reset(&self) {
         self.current_num.store(0, Ordering::Relaxed);
         self.queue_num.store(0, Ordering::Relaxed);
