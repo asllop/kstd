@@ -42,7 +42,7 @@ pub struct ScreenConsoleController<'a> {
 
 impl ScreenConsoleController<'_> {
     pub fn new(text_color: AnsiColor, bg_color: AnsiColor) -> Self {
-        let console_lock = STDOUT_DEVICE.lock();
+        let console_lock = STDOUT_DEVICE.acquire();
         console_lock.enable_cursor().unwrap_or(());
         let (cols, rows) = console_lock.get_size().unwrap_or((0,0));
         let (x, y) = console_lock.get_cursor().unwrap_or((0,0));

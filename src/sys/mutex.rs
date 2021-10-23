@@ -25,8 +25,8 @@ impl<T> KMutex<T> {
         }
     }
 
-    /// Return a lock.
-    pub fn lock(&self) -> KLock<T> {
+    /// Acquire a lock.
+    pub fn acquire(&self) -> KLock<T> {
         //TODO: we could change ordering to relaxed, and disable/enable task switching before/after fetch_add
         let q_pos = self.queue_num.fetch_add(1, Ordering::SeqCst);
         while self.current_num.load(Ordering::SeqCst) != q_pos {
@@ -35,7 +35,8 @@ impl<T> KMutex<T> {
         KLock::new(self)
     }
 
-    fn unlock(&self) {
+    /// Release a lock
+    fn release(&self) {
         // Only unlock if we are currently locked
         if self.current_num.load(Ordering::Relaxed) == self.queue_num.load(Ordering::Relaxed) - 1 {
             self.current_num.fetch_add(1, Ordering::SeqCst);
@@ -89,6 +90,6 @@ impl<'a, T> DerefMut for KLock<'a, T> {
 
 impl<'a, T> Drop for KLock<'a, T> {
     fn drop(&mut self) {
-        self.mutex.unlock();
+        self.mutex.release();
     }
 }

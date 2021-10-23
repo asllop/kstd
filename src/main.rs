@@ -1,4 +1,5 @@
 #![no_main]
+//#![feature(restricted_std)]
 #![no_std]
 
 use thek::{
@@ -16,6 +17,19 @@ pub extern "C" fn _start() -> ! {
 }
 
 fn main() {
+    /*
+    let mut static_str : [u8; 4] = [b'A', b'm', b'i', b'c'];
+    let s = unsafe { String::from_raw_parts(static_str.as_mut_ptr(), static_str.len(), static_str.len()) } ;
+    println!("{} {} {}", s.len(), s.capacity(), s);
+
+    let v = unsafe { Vec::from_raw_parts(static_str.as_mut_ptr(), static_str.len(), static_str.len()) };
+    for (i, x) in v.iter().enumerate() {
+        println!("[{}] = {}", i, x);
+    }
+    //_fail_unwrap();
+    //let s = String::from("Yehaaa!");
+    */
+
     print!("Hola");
     print_one();
     print_two();
