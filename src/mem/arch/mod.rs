@@ -1,3 +1,4 @@
+//! Architectue dependant memory infrastructure.
 
 // TODO: select arch by feature
 pub mod x86_64;

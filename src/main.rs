@@ -7,11 +7,6 @@ use thek::{
     controllers::console::{
         ansi::AnsiColor,
         ScreenConsoleController, ConsoleController
-    },
-    mem::{
-        layout::MemBlockLayout,
-        init::init_mem,
-        arch::raw_mem
     }
 };
 
@@ -19,32 +14,18 @@ extern crate alloc;
 
 use alloc::{
     vec,
+    vec::Vec,
     string::String
 };
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    init_mem();
+    thek::mem::init::setup_mem();
     main();
     loop {}
 }
 
 fn main() {
-    /*
-    unsafe {
-        let (mem_ptr, _, _) = raw_mem();
-        println!("{:#x} ", mem_ptr as usize);
-        let block_layout = &mut*(mem_ptr as *mut MemBlockLayout);
-        let mut i = 0;
-        while let Some(segment_ptr) = block_layout.pop_address() {
-            print!("{:#x} ", segment_ptr as usize);
-            i += 1;
-            if i > 20 {
-                break;
-            }
-        }
-    }
-    */
     let v = vec!(1,2,3,4,5,6,7,8,9);
     for (i, x) in v.iter().enumerate() {
         print!("[{}] = {}, ", i, x);
@@ -108,4 +89,12 @@ fn _fail_index() {
 
     let a = [1,2,3];
     let _x = a[i as usize];
+}
+
+fn _fail_oom() {
+    // Crash, out of memory!
+    let mut v = Vec::new();
+    loop {
+        v.push(String::from("Nova cadena"));
+    }
 }

@@ -1,4 +1,4 @@
-//! Init mem
+//! Memory initializations.
 
 use super::{
     layout::MemBlockLayout,
@@ -11,14 +11,14 @@ use core::mem::size_of;
 const SEGMENT_SIZE : usize = 4*1024;
 
 /// Initialize memory structures
-pub fn init_mem() {
+pub fn setup_mem() {
     unsafe {
-        internal_init_mem();
+        init_mem();
     }
 }
 
 /// We set only one block with 4K segments, for better performance we should set multiple blocks with different segment size
-unsafe fn internal_init_mem() {
+unsafe fn init_mem() {
     let (mem_ptr, mem_size, _align) = raw_mem();
 
     let block_base_address = mem_ptr.add(size_of::<MemBlockLayout>());

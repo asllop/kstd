@@ -52,7 +52,7 @@ impl<T> KMutex<T> {
     }
 }
 
-/// Lock returned by [`KMutex::lock()`].
+/// Lock returned by [`KMutex::acquire()`].
 /// 
 /// It's a smart pointer that gives access to inner type.
 pub struct KLock<'a, T> {
