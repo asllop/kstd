@@ -53,6 +53,7 @@
 
 #![no_std]
 #![feature(asm)]
+#![feature(alloc_error_handler)] 
 
 pub mod arch;
 
@@ -61,6 +62,8 @@ pub mod devices;
 pub mod controllers;
 
 pub mod sys;
+
+pub mod mem;
 
 use controllers::console::{
     ansi::{

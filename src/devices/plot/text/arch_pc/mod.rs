@@ -20,7 +20,7 @@ use crate::{
         }
     },
     sys::KError,
-    arch::x86_64::{
+    arch::{
         inb, outb
     }
 };

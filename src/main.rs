@@ -7,30 +7,60 @@ use thek::{
     controllers::console::{
         ansi::AnsiColor,
         ScreenConsoleController, ConsoleController
+    },
+    mem::{
+        layout::MemBlockLayout,
+        init::init_mem,
+        arch::raw_mem
     }
+};
+
+extern crate alloc;
+
+use alloc::{
+    vec,
+    string::String
 };
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
+    init_mem();
     main();
     loop {}
 }
 
 fn main() {
     /*
-    let mut static_str : [u8; 4] = [b'A', b'm', b'i', b'c'];
-    let s = unsafe { String::from_raw_parts(static_str.as_mut_ptr(), static_str.len(), static_str.len()) } ;
-    println!("{} {} {}", s.len(), s.capacity(), s);
-
-    let v = unsafe { Vec::from_raw_parts(static_str.as_mut_ptr(), static_str.len(), static_str.len()) };
-    for (i, x) in v.iter().enumerate() {
-        println!("[{}] = {}", i, x);
+    unsafe {
+        let (mem_ptr, _, _) = raw_mem();
+        println!("{:#x} ", mem_ptr as usize);
+        let block_layout = &mut*(mem_ptr as *mut MemBlockLayout);
+        let mut i = 0;
+        while let Some(segment_ptr) = block_layout.pop_address() {
+            print!("{:#x} ", segment_ptr as usize);
+            i += 1;
+            if i > 20 {
+                break;
+            }
+        }
     }
-    //_fail_unwrap();
-    //let s = String::from("Yehaaa!");
     */
+    let v = vec!(1,2,3,4,5,6,7,8,9);
+    for (i, x) in v.iter().enumerate() {
+        print!("[{}] = {}, ", i, x);
+    }
+    println!();
 
-    print!("Hola");
+    let s = String::from("Aix`o mola molt! e's guay!");
+    println!("{}", s);
+
+    let v2 = vec!(1,2,3,4,5,6,7,8,9);
+    for (i, x) in v2.iter().enumerate() {
+        print!("[{}] = {}, ", i, x);
+    }
+    println!();
+
+    print!("\nHola");
     print_one();
     print_two();
     print_count(1);
