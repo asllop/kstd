@@ -22,7 +22,7 @@ unsafe impl GlobalAlloc for Memory {
     unsafe fn alloc(&self, _layout: Layout) -> *mut u8 {
         let lock = MEM_MUTEX.acquire();
         lock.fetch_add(1, Ordering::Relaxed);
-        let (mem_ptr, _, _) = raw_mem();
+        let (mem_ptr, _) = raw_mem();
         let block_layout = &mut*(mem_ptr as *mut MemBlockLayout);
         if _layout.size() < block_layout.segment_size {
             if let Some(segment_ptr) = block_layout.pop_address() {
@@ -40,7 +40,7 @@ unsafe impl GlobalAlloc for Memory {
     unsafe fn dealloc(&self, _ptr: *mut u8, _layout: Layout) {
         let lock = MEM_MUTEX.acquire();
         lock.fetch_sub(1, Ordering::Relaxed);
-        let (mem_ptr, _, _) = raw_mem();
+        let (mem_ptr, _) = raw_mem();
         let block_layout = &mut*(mem_ptr as *mut MemBlockLayout);
         if let Err(_) = block_layout.push_address(_ptr) {
             panic!("Could not push address into segment stack")

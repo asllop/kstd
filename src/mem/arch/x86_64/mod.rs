@@ -1,8 +1,8 @@
 //! Memory infrastructure for x86_64.
 
 /// Return pointer, size and alignment.
-pub unsafe fn raw_mem() -> (*mut u8, usize, usize) {
-    (RAW_MEMORY.as_mut_ptr(), MEM_SIZE, ALIGN)
+pub unsafe fn raw_mem() -> (*mut u8, usize) {
+    (RAW_MEMORY.as_mut_ptr(), MEM_SIZE)
 }
 
 /// Memory alignment

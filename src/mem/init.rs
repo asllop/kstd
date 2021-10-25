@@ -31,7 +31,7 @@ fn align_padding(address: *mut u8) -> usize {
 
 /// We set only one block with 4K segments, for better performance we should set multiple blocks with different segment size
 unsafe fn init_mem() {
-    let (mem_ptr, mem_size, _align) = raw_mem();
+    let (mem_ptr, mem_size) = raw_mem();
     //TODO: split raw mem into multiple blocks for different segment sizes
     //TODO: apply platform alignment padding to buffers
     init_block(mem_ptr, mem_size, SEGMENT_SIZE);
