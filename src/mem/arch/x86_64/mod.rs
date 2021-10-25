@@ -6,7 +6,7 @@ pub unsafe fn raw_mem() -> (*mut u8, usize, usize) {
 }
 
 /// Memory alignment
-const ALIGN : usize = 4;
+pub const ALIGN : usize = 4;
 
 /// Simulated raw memory (until we access actual raw mem)
 const MEM_SIZE : usize = 10*1024*1024;

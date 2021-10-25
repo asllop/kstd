@@ -54,7 +54,7 @@ static GLOB_ALLOC : Memory = Memory;
 
 /// Memory allocator resource mutex
 /// 
-/// The counter is for both, keep track of the currently allocated segments and to prevent rust from optimizing out the lock if it does nothing.
+/// The counter is for both, keep track of the currently allocated segments and to prevent rust from optimizing out the lock variable if it's not used.
 static MEM_MUTEX : KMutex<AtomicUsize> = KMutex::new(AtomicUsize::new(0));
 
 #[alloc_error_handler]

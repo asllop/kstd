@@ -1,6 +1,6 @@
 //! # Introduction
 //! 
-//! `TheK` is a unikernel specially designed to offer support to Rust `std`.
+//! `TheK` is a unikernel specially designed to offer support to Rust [`std`](https://doc.rust-lang.org/std/).
 //! 
 //! # Memory Management
 //! 
