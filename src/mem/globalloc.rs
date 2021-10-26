@@ -6,7 +6,9 @@ use core::{
     },
 };
 use super::{
-    layout::MemBlockLayout,
+    layout::{
+        MemBlockSet
+    },
     arch::raw_mem
 };
 use crate::sys::{
@@ -18,15 +20,26 @@ extern crate alloc;
 /// Memory Global Allocator
 struct Memory;
 
-unsafe impl GlobalAlloc for Memory {
-    unsafe fn alloc(&self, _layout: Layout) -> *mut u8 {
-        let lock = MEM_MUTEX.acquire();
+impl Memory {
+    unsafe fn get_block_set(&self) -> &mut MemBlockSet {
         let (mem_ptr, _) = raw_mem();
-        let block_layout = &mut*(mem_ptr as *mut MemBlockLayout);
-        if _layout.size() < block_layout.segment_size {
-            if let Some(segment_ptr) = block_layout.pop_address() {
-                lock.fetch_add(1, Ordering::Relaxed);
-                segment_ptr
+        &mut*(mem_ptr as *mut MemBlockSet)
+    }
+}
+
+unsafe impl GlobalAlloc for Memory {
+    unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
+        let lock = MEM_MUTEX.acquire();
+        let block_set = self.get_block_set();
+        if let Some(block_layout) = block_set.find_block(layout.size()) {
+            if layout.size() < block_layout.segment_size {
+                if let Some(segment_ptr) = block_layout.pop_address() {
+                    lock.fetch_add(1, Ordering::Relaxed);
+                    segment_ptr
+                }
+                else {
+                    null_mut()
+                }
             }
             else {
                 null_mut()
@@ -37,14 +50,18 @@ unsafe impl GlobalAlloc for Memory {
         }
     }
 
-    unsafe fn dealloc(&self, _ptr: *mut u8, _layout: Layout) {
+    unsafe fn dealloc(&self, ptr: *mut u8, _layout: Layout) {
         let lock = MEM_MUTEX.acquire();
-        let (mem_ptr, _) = raw_mem();
-        let block_layout = &mut*(mem_ptr as *mut MemBlockLayout);
-        if let Err(_) = block_layout.push_address(_ptr) {
-            panic!("Could not push address into segment stack")
+        let block_set = self.get_block_set();
+        if let Some(block_layout) = block_set.owns_segment(ptr) {
+            if let Err(_) = block_layout.push_address(ptr) {
+                panic!("Could not push address into segment stack");
+            }
+            lock.fetch_sub(1, Ordering::Relaxed);
         }
-        lock.fetch_sub(1, Ordering::Relaxed);
+        else {
+            panic!("Could not find a block that owns the segment");
+        }
     }
 }
 
