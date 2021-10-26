@@ -111,9 +111,8 @@ unsafe fn init_block(block_base_address: *mut u8, block_size: usize, segment_siz
     stack_size_bytes = block_size * size_of::<*mut u8>() / (size_of::<*mut u8>() + segment_size)
     */
 
-    let (stack_size_bytes, num_segments, segment_size) = if segment_size > block_size {
+    let (num_segments, segment_size) = if segment_size > block_size {
         (
-            size_of::<*mut u8>(),
             1,
             block_size - size_of::<*mut u8>()
         )
@@ -122,7 +121,6 @@ unsafe fn init_block(block_base_address: *mut u8, block_size: usize, segment_siz
         let stack_size_bytes = (block_size * size_of::<*mut u8>()) / (size_of::<*mut u8>() + segment_size);
         let num_segments = stack_size_bytes / size_of::<*mut u8>();
         (
-            stack_size_bytes,
             num_segments,
             segment_size
         )

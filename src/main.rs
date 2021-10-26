@@ -3,7 +3,7 @@
 #![no_std]
 
 use thek::{
-    print, println, w_print,
+    print, println, w_print, w_println,
     controllers::console::{
         ansi::AnsiColor,
         ScreenConsoleController, ConsoleController
@@ -11,7 +11,7 @@ use thek::{
     mem::{
         arch::raw_mem,
         layout::{
-            MemBlockSet, MemBlockLayout
+            MemBlockSet, //MemBlockLayout
         }
     }
 };
@@ -30,15 +30,21 @@ use core::mem::size_of;
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
     thek::mem::init::setup_mem(&[
-        (4*1024, 50),
-        (256*1024, 25),
-        (usize::MAX, 25)
+        (4*1024, 50),       // 50% of mem in segments of 4KB
+        (256*1024, 25),     // 25% of mem in segments of 256KB
+        (usize::MAX, 25)    // Remaining 25% in one single segment
     ]);
     main();
     loop {}
 }
 
 fn main() {
+
+    {
+        let mut con = ScreenConsoleController::new(AnsiColor::BrightWhite, AnsiColor::BrightBlue);
+        con.set_xy(34, 0).unwrap_or_default();
+        w_println!(con, "<<< The K >>>");
+    }
 
     println!("MemBlockSet size {}", size_of::<MemBlockSet>());
 
@@ -90,33 +96,10 @@ fn main() {
     }
     println!();
 
-/*
-    print!("\nHola");
-    print_one();
-    print_two();
-    print_count(3);
-    print!("Adeu!");
-    println!();
+    print_count(1);
 
-    {
-        let mut con = ScreenConsoleController::new(AnsiColor::BrightWhite, AnsiColor::BrightBlue);
-        con.set_xy(34, 12).unwrap_or_default();
-        w_print!(con, "<<< The K >>>");
-    }
-*/
     //_fail_unwrap();
     //_fail_index();
-}
-
-fn print_one() {
-    let x = 101;
-    println!("---->");
-    println!("\nNumber 1 = {}", x);
-}
-
-fn print_two() {
-    let x = 202;
-    println!("\nNumber 2 = {}", x);
 }
 
 fn print_count(n: i32) {
