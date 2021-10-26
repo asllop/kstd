@@ -60,7 +60,7 @@ unsafe impl GlobalAlloc for Memory {
             lock.fetch_sub(1, Ordering::Relaxed);
         }
         else {
-            panic!("Could not find a block that owns the segment");
+            panic!("Could not find a block that owns the segment {:#x}", ptr as usize);
         }
     }
 }

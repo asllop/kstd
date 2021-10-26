@@ -44,7 +44,7 @@ impl MemBlockSet {
             let payload_final_ptr = payload_initial_ptr.add(payload_size);
 
             let distance = payload_final_ptr.offset_from(segment_ptr);
-            if distance > 0 && distance < payload_size as isize {
+            if distance > 0 && distance <= payload_size as isize {
                 return self.block_at(i);
             }
         }
