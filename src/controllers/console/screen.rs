@@ -104,6 +104,7 @@ impl Default for ScreenConsoleController<'_> {
 }
 
 //TODO: create a buffer and scroll all lines up when a new line happens
+//TODO: parse tab
 //TODO: parse ANSI commands in the string to set colors, etc
 
 impl Write for ScreenConsoleController<'_> {

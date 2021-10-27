@@ -27,3 +27,7 @@ pub trait ConsoleController : Write + Default {
     /// Get size in Columns, Rows
     fn get_size(&self) -> (usize, usize);
 }
+
+// TODO: configure with a feature
+/// Default console controller
+pub type DefaultConsoleController<'a> = ScreenConsoleController<'a>;

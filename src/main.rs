@@ -6,7 +6,7 @@ use thek::{
     print, println, w_print, w_println,
     controllers::console::{
         ansi::AnsiColor,
-        ScreenConsoleController, ConsoleController
+        DefaultConsoleController, ConsoleController
     },
     mem::{
         arch::raw_mem,
@@ -38,15 +38,20 @@ pub extern "C" fn _start() -> ! {
     loop {}
 }
 
+/*
+TODO: create tests for mem
+- Check used mem after every alloc/dealloc
+- Check if segments are correctly selected depending on requiered size.
+- Check that blocks are not overlaping.
+*/
+
 fn main() {
 
     {
-        let mut con = ScreenConsoleController::new(AnsiColor::BrightWhite, AnsiColor::BrightBlue);
-        con.set_xy(34, 0).unwrap_or_default();
-        w_println!(con, "<<< The K >>>");
+        let mut con = DefaultConsoleController::new(AnsiColor::BrightWhite, AnsiColor::BrightBlue);
+        con.set_xy(33, 0).unwrap_or_default();
+        w_println!(con, " <<< TheK >>>");
     }
-
-    println!("MemBlockSet size {}", size_of::<MemBlockSet>());
 
     let block_set = unsafe {
         let (ptr, _) = raw_mem();
@@ -63,7 +68,7 @@ fn main() {
             blay.num_segments * size_of::<*mut u8>(),
             blay.num_segments * blay.segment_size
         );
-
+/*
         if blay.num_segments > 0 {
             let addr1 = unsafe { blay.pop_address().unwrap() };
             println!("   {:#x}", addr1 as usize);
@@ -76,6 +81,7 @@ fn main() {
             let addr3 = unsafe { blay.pop_address().unwrap() };
             println!("   {:#x}", addr3 as usize);
         }
+*/
     }
 
     let v = vec!(1,2,3,4,5,6,7,8,9);
@@ -100,6 +106,8 @@ fn main() {
 
     //_fail_unwrap();
     //_fail_index();
+
+    //_fail_oom();
 }
 
 fn print_count(n: i32) {
