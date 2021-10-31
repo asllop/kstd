@@ -1,5 +1,4 @@
 #![no_main]
-//#![feature(restricted_std)]
 #![no_std]
 
 use thek::{
@@ -16,14 +15,7 @@ use thek::{
     }
 };
 
-extern crate alloc;
-
-use alloc::{
-    vec,
-    vec::Vec,
-    string::String,
-    boxed::Box
-};
+use std::prelude::v1::*;
 
 use core::mem::size_of;
 

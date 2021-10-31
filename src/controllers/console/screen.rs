@@ -105,7 +105,7 @@ impl Default for ScreenConsoleController<'_> {
 
 //TODO: create a buffer and scroll all lines up when a new line happens
 //TODO: parse tab
-//TODO: parse ANSI commands in the string to set colors, etc
+//TODO: parse ANSI commands in the string to set colors, move cursor, etc
 
 impl Write for ScreenConsoleController<'_> {
     fn write_str(&mut self, s: &str) -> Result<(), Error> {

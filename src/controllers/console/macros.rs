@@ -2,7 +2,7 @@
 #[macro_export]
 macro_rules! w_print {
     ($writer:ident, $($arg:tt)*) => ({
-        core::fmt::write(&mut $writer, format_args!($($arg)*)).unwrap_or(());
+        core::fmt::write(&mut $writer, core::format_args!($($arg)*)).unwrap_or(());
     })
 }
 
@@ -10,7 +10,7 @@ macro_rules! w_print {
 #[macro_export]
 macro_rules! w_println {
     ($writer:ident) => (w_print!($writer, "\n"));
-    ($writer:ident, $($arg:tt)*) => (w_print!($writer, "{}\n", format_args!($($arg)*)));
+    ($writer:ident, $($arg:tt)*) => (w_print!($writer, "{}\n", core::format_args!($($arg)*)));
 }
 
 /// Print format to stdout
@@ -18,7 +18,7 @@ macro_rules! w_println {
 macro_rules! print {
     ($($arg:tt)*) => ({
         let mut con = DefaultConsoleController::default();
-        core::fmt::write(&mut con, format_args!($($arg)*)).unwrap_or(());
+        core::fmt::write(&mut con, core::format_args!($($arg)*)).unwrap_or(());
     })
 }
 
@@ -26,5 +26,5 @@ macro_rules! print {
 #[macro_export]
 macro_rules! println {
     () => (print!("\n"));
-    ($($arg:tt)*) => (print!("{}\n", format_args!($($arg)*)));
+    ($($arg:tt)*) => (print!("{}\n", core::format_args!($($arg)*)));
 }

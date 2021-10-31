@@ -28,7 +28,7 @@
 //! - No need for long mutex cycles that lock other tasks, only simple atomic PopAddress and PushAddress operation that are very short.
 //! 
 //! Disadvantages:
-//! - Is not possible to guarantee contiguous segments when we alloc, and then we have less flexibility (resize operation is not feasible).
+//! - Is not possible to guarantee contiguous segments when we alloc, and then we have less flexibility.
 //! - More affected by fragmentation, more likely to get nothing from Alloc than other classic allocation methods (like linked lists).
 //! 
 //! Drawbacks can be mitigated by chosing convenient segment and bucket sizes.
@@ -37,19 +37,28 @@
 //! 
 //! Drivers are splitted into 2 parts:
 //! 
-//! - Devices access hardware directly. They usually only offer very low level features, directly support by the underlying hardware. They implement API traits for interaction with the external world, like [`PlotTextDevice`][`devices::plot::text::PlotTextDevice`].
-//! - Controllers are arch independant and they use devices as an abstraction layer to control the hardware. They implement traits to offer a standard interface to users, like [`ConsoleController`].
+//! - **Devices** access hardware directly. They usually only offer very low level features, directly support by the underlying hardware. They implement API traits for interaction with the external world, like [`PlotTextDevice`][`devices::plot::text::PlotTextDevice`].
+//! - **Controllers** are arch independant and they use devices as an abstraction layer to control the hardware. They implement traits to offer a standard interface to users, like [`ConsoleController`].
 //! 
 //! Users should generally access controllers, because they offer a higher abstraction level and more features. Only use devices directly whenever you have a very specific and low level requirement.
 //! 
 //! # Next steps:
 //! 
 //! - Explore OS dependencies to build std.
-//! - Implement memory management.
+//! - Implement SMP support.
 //! - Implement multithreading.
 //! - Implement async (optional).
-//! - Explore UEFI support of keyboard input, filesystem and network.
-//! - Implement USB driver.
+//! - Explore UEFI support of keyboard input, filesystem (others?).
+//! - Implement a PCI driver and...
+//! - Implement USB driver (based on LibUSB).
+
+/*
+Crates tp simplify x86 low level handling:
+
+https://docs.rs/x86_64/
+https://docs.rs/x86_interrupts
+https://docs.rs/x86/
+*/
 
 #![no_std]
 #![feature(asm)]
