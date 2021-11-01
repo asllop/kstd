@@ -75,18 +75,16 @@ pub mod sys;
 pub mod mem;
 
 use controllers::console::{
-    ansi::{
-        AnsiColor
-    },
+    ansi::AnsiColor,
     ConsoleController, ScreenConsoleController
 };
 
-use devices::plot::{
-    text::STDOUT_DEVICE
-};
+use devices::plot::text::STDOUT_DEVICE;
 
-use core::panic::PanicInfo;
-use core::fmt::Write;
+use core::{
+    panic::PanicInfo,
+    fmt::Write
+};
 
 /// Panic handler.
 #[panic_handler]
@@ -95,5 +93,6 @@ fn panic(info: &PanicInfo) -> ! {
     let mut con = ScreenConsoleController::new(AnsiColor::BrightWhite, AnsiColor::Red);
     con.set_xy(0, 0).unwrap_or_default();
     write!(&mut con, "### Kernel {} ###", info).unwrap_or_default();
+    arch::halt();
     loop {}
 }

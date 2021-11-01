@@ -17,3 +17,12 @@ pub fn outb(port: u16, data: u8) {
         asm!("out dx, al", in("dx") port, in("al") data);
     }
 }
+
+/// Halt
+#[cfg(any(target_arch = "x86_64"))]
+pub fn halt() {
+    unsafe {
+        asm!("cli");
+        asm!("hlt");
+    }
+}
