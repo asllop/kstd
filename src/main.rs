@@ -97,6 +97,11 @@ fn main() {
 
     print_count(1);
 
+    let mut v = Vec::new();
+    for _ in 0..1000 {
+        v.push(String::from("Nova cadena"));
+    }
+
     //_fail_unwrap();
 
     //_fail_oom();

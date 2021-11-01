@@ -25,6 +25,24 @@ impl Memory {
         let (mem_ptr, _) = raw_mem();
         &mut*(mem_ptr as *mut MemBlockSet)
     }
+
+    /// Reimplement GlobalAlloc::realloc :(
+    fn _realloc(&self, ptr: *mut u8, layout: Layout, new_size: usize) -> *mut u8 {
+        // SAFETY: the caller must ensure that the `new_size` does not overflow.
+        // `layout.align()` comes from a `Layout` and is thus guaranteed to be valid.
+        let new_layout = unsafe { Layout::from_size_align_unchecked(new_size, layout.align()) };
+        // SAFETY: the caller must ensure that `new_layout` is greater than zero.
+        let new_ptr = unsafe { self.alloc(new_layout) };
+        if !new_ptr.is_null() {
+            // SAFETY: the previously allocated block cannot overlap the newly allocated block.
+            // The safety contract for `dealloc` must be upheld by the caller.
+            unsafe {
+                core::intrinsics::copy_nonoverlapping(ptr, new_ptr, core::cmp::min(layout.size(), new_size));
+                self.dealloc(ptr, layout);
+            }
+        }
+        new_ptr
+    }
 }
 
 unsafe impl GlobalAlloc for Memory {
@@ -64,7 +82,23 @@ unsafe impl GlobalAlloc for Memory {
         }
     }
 
-    //TODO: implement realloc
+    unsafe fn realloc(&self, ptr: *mut u8, layout: Layout, new_size: usize) -> *mut u8 {
+        let lock = MEM_MUTEX.acquire();
+        let block_set = self.get_block_set();
+        if let Some(block_layout) = block_set.owns_segment(ptr) {
+            // If new size fits within the current memory segment, reuse it
+            if new_size <= block_layout.segment_size {
+                ptr
+            }
+            else {
+                core::mem::drop(lock);
+                self._realloc(ptr, layout, new_size)
+            }
+        }
+        else {
+            panic!("Could not find a block that owns the segment {:#x}", ptr as usize);
+        }
+    }
 }
 
 /// Global Allocator static instance
