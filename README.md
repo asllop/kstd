@@ -1,6 +1,9 @@
-# TheK
+# K-std
 
-Unikernel specifically designed to serve as a backend for Rust std.
+Unikernel specifically designed to serve as a backend for Rust std. It's composed by two parts:
+
+- The std library, that is essentially a stripped down version of the official rust std.
+- The K, that is the actual kernel that provides the low level funcions requiered by std.
 
 # Build
 

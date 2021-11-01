@@ -9,13 +9,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b7c452074efc3c0bfb241fb7bc87df04741c7c85e926f6a07c05f8fbd6008240"
 
 [[package]]
+name = "kstd"
+version = "0.1.0"
+dependencies = [
+ "bootloader",
+ "std",
+ "thek",
+]
+
+[[package]]
 name = "std"
 version = "0.1.0"
 
 [[package]]
 name = "thek"
-version = "0.1.0"
-dependencies = [
- "bootloader",
- "std",
-]
+version = "0.0.0"

@@ -44,7 +44,7 @@ fn main() {
     {
         let mut con = DefaultConsoleController::new(AnsiColor::BrightWhite, AnsiColor::BrightBlue);
         con.set_xy(33, 0).unwrap_or_default();
-        writeln!(&mut con, " <<< TheK >>>");
+        writeln!(&mut con, " <<< TheK >>>").unwrap_or_default();
     }
 
     let block_set = unsafe {
@@ -98,7 +98,7 @@ fn main() {
 
     print_count(1);
 
-    _fail_unwrap();
+    //_fail_unwrap();
 
     //_fail_oom();
 }
