@@ -93,6 +93,7 @@ fn panic(info: &PanicInfo) -> ! {
     let mut con = ScreenConsoleController::new(AnsiColor::BrightWhite, AnsiColor::Red);
     con.set_xy(0, 0).unwrap_or_default();
     write!(&mut con, "### Kernel {} ###", info).unwrap_or_default();
-    arch::halt();
-    loop {}
+    loop {
+        arch::halt();
+    }
 }

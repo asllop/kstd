@@ -3,10 +3,6 @@
 mod screen;
 pub use screen::*;
 
-#[macro_use]
-mod macros;
-pub use macros::*;
-
 pub mod ansi;
 
 use core::{

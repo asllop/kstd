@@ -20,6 +20,9 @@ dependencies = [
 [[package]]
 name = "std"
 version = "0.1.0"
+dependencies = [
+ "thek",
+]
 
 [[package]]
 name = "thek"
