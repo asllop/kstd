@@ -2,7 +2,7 @@
 #![no_std]
 
 use thek::{
-    print, println, w_print, w_println,
+    print, println,
     controllers::console::{
         ansi::AnsiColor,
         DefaultConsoleController, ConsoleController
@@ -16,6 +16,8 @@ use thek::{
 };
 
 use std::prelude::v1::*;
+
+use std::fmt::Write;
 
 use core::mem::size_of;
 
@@ -42,7 +44,7 @@ fn main() {
     {
         let mut con = DefaultConsoleController::new(AnsiColor::BrightWhite, AnsiColor::BrightBlue);
         con.set_xy(33, 0).unwrap_or_default();
-        w_println!(con, " <<< TheK >>>");
+        writeln!(&mut con, " <<< TheK >>>");
     }
 
     let block_set = unsafe {
@@ -96,8 +98,7 @@ fn main() {
 
     print_count(1);
 
-    //_fail_unwrap();
-    //_fail_index();
+    _fail_unwrap();
 
     //_fail_oom();
 }
@@ -112,16 +113,6 @@ fn _fail_unwrap() {
     let a : Option<i32> = None;
     //panic
     a.unwrap();
-}
-
-fn _fail_index() {
-    // Read data from raw memory to avoid rust detecting index out of bounds at compile time
-    let i = unsafe {
-        *(0xB8000 as *mut u8)
-    };
-
-    let a = [1,2,3];
-    let _x = a[i as usize];
 }
 
 fn _fail_oom() {

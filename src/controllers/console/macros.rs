@@ -1,18 +1,3 @@
-/// Print format using writer
-#[macro_export]
-macro_rules! w_print {
-    ($writer:ident, $($arg:tt)*) => ({
-        core::fmt::write(&mut $writer, core::format_args!($($arg)*)).unwrap_or(());
-    })
-}
-
-/// Print newline ended format using writer
-#[macro_export]
-macro_rules! w_println {
-    ($writer:ident) => (w_print!($writer, "\n"));
-    ($writer:ident, $($arg:tt)*) => (w_print!($writer, "{}\n", core::format_args!($($arg)*)));
-}
-
 /// Print format to stdout
 #[macro_export]
 macro_rules! print {

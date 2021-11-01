@@ -151,3 +151,7 @@ pub use core::{
 pub use core::primitive;
 
 pub mod alloc;
+
+// The standard macros that are not built-in to the compiler.
+#[macro_use]
+mod macros;

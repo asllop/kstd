@@ -86,6 +86,7 @@ use devices::plot::{
 };
 
 use core::panic::PanicInfo;
+use core::fmt::Write;
 
 /// Panic handler.
 #[panic_handler]
@@ -93,6 +94,6 @@ fn panic(info: &PanicInfo) -> ! {
     STDOUT_DEVICE.reset();
     let mut con = ScreenConsoleController::new(AnsiColor::BrightWhite, AnsiColor::Red);
     con.set_xy(0, 0).unwrap_or_default();
-    w_print!(con, "### Kernel {} ###", info);
+    write!(&mut con, "### Kernel {} ###", info);
     loop {}
 }
