@@ -1,7 +1,3 @@
-use core::{
-    marker::PhantomData
-};
-
 use crate::{
     controllers::{
         console::{
@@ -10,9 +6,7 @@ use crate::{
             }
         }
     },
-    sys::{
-        KMutex, KError, Void
-    }
+    sys::KError
 };
 
 /// Plot text device interface trait. All plot text devices must implement it.
@@ -47,11 +41,3 @@ pub trait PlotTextDevice {
     /// Get console size in Columns,Rows
     fn get_size(&self) -> Result<(usize, usize), KError>;
 }
-
-/// Screen text device.
-/// 
-/// Can't be directly instantiated.
-pub struct ScreenTextDevice(Void);
-
-/// Public stdout device.
-pub static STDOUT_DEVICE : KMutex<ScreenTextDevice> = KMutex::new(ScreenTextDevice(PhantomData));
