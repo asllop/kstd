@@ -25,24 +25,6 @@ impl Memory {
         let (mem_ptr, _) = raw_mem();
         &mut*(mem_ptr as *mut MemBlockSet)
     }
-
-    /// Reimplement GlobalAlloc::realloc :(
-    fn _realloc(&self, ptr: *mut u8, layout: Layout, new_size: usize) -> *mut u8 {
-        // SAFETY: the caller must ensure that the `new_size` does not overflow.
-        // `layout.align()` comes from a `Layout` and is thus guaranteed to be valid.
-        let new_layout = unsafe { Layout::from_size_align_unchecked(new_size, layout.align()) };
-        // SAFETY: the caller must ensure that `new_layout` is greater than zero.
-        let new_ptr = unsafe { self.alloc(new_layout) };
-        if !new_ptr.is_null() {
-            // SAFETY: the previously allocated block cannot overlap the newly allocated block.
-            // The safety contract for `dealloc` must be upheld by the caller.
-            unsafe {
-                core::intrinsics::copy_nonoverlapping(ptr, new_ptr, core::cmp::min(layout.size(), new_size));
-                self.dealloc(ptr, layout);
-            }
-        }
-        new_ptr
-    }
 }
 
 unsafe impl GlobalAlloc for Memory {
@@ -92,7 +74,8 @@ unsafe impl GlobalAlloc for Memory {
             }
             else {
                 core::mem::drop(lock);
-                self._realloc(ptr, layout, new_size)
+                // Call default implementation of realloc on a different type, otherwise we would get a recursive infinite loop
+                AUX_M.realloc(ptr, layout, new_size)
             }
         }
         else {
@@ -104,6 +87,20 @@ unsafe impl GlobalAlloc for Memory {
 /// Global Allocator static instance
 #[global_allocator]
 static GLOB_ALLOC : Memory = Memory;
+
+/// Awful trick used to avoid reimplementing GlobalAlloc::realloc and to emulate a call to "super" (trait default implementation of realloc).
+struct _M;
+
+unsafe impl GlobalAlloc for _M {
+    unsafe fn alloc(&self, _layout: Layout) -> *mut u8 {
+        GLOB_ALLOC.alloc(_layout)
+    }
+    unsafe fn dealloc(&self, _ptr: *mut u8, _layout: Layout) {
+        GLOB_ALLOC.dealloc(_ptr, _layout)
+    }
+}
+
+static AUX_M : _M = _M;
 
 /// Memory allocator resource mutex
 /// 
