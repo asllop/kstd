@@ -117,6 +117,9 @@ fn main() {
         v.push(String::from("Nova cadena"));
     }
 
+    // Print a backspace to remove the 'A'
+    print!("\nHOLA\x08");
+
     //_fail_unwrap();
 
     //_fail_oom();

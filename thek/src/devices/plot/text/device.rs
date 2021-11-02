@@ -39,4 +39,9 @@ pub trait PlotTextDevice<'a> : Device<'a> {
 
     /// Get console size in Columns,Rows
     fn get_size(&self) -> Result<(usize, usize), KError>;
+
+    /// The device can handle ANSI Escape Sequences.
+    fn is_ansi(&self) -> bool {
+        false
+    }
 }

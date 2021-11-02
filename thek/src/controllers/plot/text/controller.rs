@@ -85,15 +85,11 @@ impl<'a, T: PlotTextDevice<'a>> PlotTextController<'a, T> {
         }
     }
 
-    fn line_break(&mut self) {
-        if self.y + 1 >= self.rows {
-            self.scroll_up();
-            self.x = 0;
+    fn internal_print(&mut self, ch: u8) -> Result<(), Error> {
+        if let Err(_) = self.device_lock.print(self.x, self.y, self.text_color, self.bg_color, ch) {
+            return Err(Error);
         }
-        else {
-            self.y += 1;
-            self.x = 0;
-        }
+        Ok(())
     }
 }
 
@@ -103,18 +99,23 @@ impl<'a, T: PlotTextDevice<'a>> Default for PlotTextController<'a, T> {
     }
 }
 
-//TODO: parse ANSI commands in the string to set colors, move cursor, etc
-
 impl<'a, T: PlotTextDevice<'a>> Write for PlotTextController<'a, T> {
     fn write_str(&mut self, s: &str) -> Result<(), Error> {
         for ch in s.as_bytes() {
             match *ch {
                 0x0a => {
-                    // newline
-                    self.line_break();
+                    // Newline
+                    if self.y + 1 >= self.rows {
+                        self.scroll_up();
+                        self.x = 0;
+                    }
+                    else {
+                        self.y += 1;
+                        self.x = 0;
+                    }
                 },
                 0x09 => {
-                    // tab
+                    // Tab
                     let tab_num = self.x / 4;
                     self.x = (tab_num  + 1) * 4;
                     if self.x >= self.cols {
@@ -122,7 +123,7 @@ impl<'a, T: PlotTextDevice<'a>> Write for PlotTextController<'a, T> {
                     }
                 },
                 0x08 => {
-                    // backspace
+                    // Backspace
                     if self.x > 0 {
                         self.x -= 1;
                     }
@@ -135,15 +136,23 @@ impl<'a, T: PlotTextDevice<'a>> Write for PlotTextController<'a, T> {
                             // X and Y are 0, screen origin, do nothing
                         }
                     }
+                    // Print space to actually remove char
+                    self.internal_print(' ' as u8)?;
                 },
                 0x1b => {
-                    // TODO: ANSI command
+                    // ANSI Escape Sequence
+                    if self.device_lock.is_ansi() {
+                        // The device can handle ANSI commands
+                        self.internal_print(*ch)?;
+                        self.inc_pos();
+                    }
+                    else {
+                        //TODO: parse ANSI commands
+                    }
                 },
                 _ => {
                     // Everything else is considered a printable char (even if it's not)
-                    if let Err(_) = self.device_lock.print(self.x, self.y, self.text_color, self.bg_color, *ch) {
-                        return Err(Error);
-                    }
+                    self.internal_print(*ch)?;
                     self.inc_pos();
                 }
             }
