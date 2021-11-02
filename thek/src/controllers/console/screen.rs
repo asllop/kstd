@@ -17,7 +17,7 @@ use crate::{
     devices::{
         plot::{
             text::{
-                ScreenTextDevice, STDOUT_DEVICE, PlotTextDevice
+                PlotTextDevice
             }
         }
     }
@@ -30,19 +30,19 @@ use crate::sys::{
 use super::ConsoleController;
 
 /// Screen console controller
-pub struct ScreenConsoleController<'a> {
+pub struct ScreenConsoleController<'a, T: PlotTextDevice<'a>> {
     cols: usize,
     rows: usize,
     x: usize,
     y: usize,
-    console_lock: KLock<'a, ScreenTextDevice>,
+    console_lock: KLock<'a, T>,
     text_color: AnsiColor,
     bg_color: AnsiColor
 }
 
-impl ScreenConsoleController<'_> {
+impl<'a, T: PlotTextDevice<'a>> ScreenConsoleController<'a, T> {
     pub fn new(text_color: AnsiColor, bg_color: AnsiColor) -> Self {
-        let console_lock = STDOUT_DEVICE.acquire();
+        let console_lock = T::lock();
         console_lock.enable_cursor().unwrap_or(());
         let (cols, rows) = console_lock.get_size().unwrap_or((0,0));
         let (x, y) = console_lock.get_cursor().unwrap_or((0,0));
@@ -92,7 +92,7 @@ impl ScreenConsoleController<'_> {
     }
 }
 
-impl ConsoleController for ScreenConsoleController<'_> {
+impl<'a, T: PlotTextDevice<'a>> ConsoleController for ScreenConsoleController<'a, T> {
 
     fn get_xy(&self) -> (usize, usize) { (self.x, self.y) }
 
@@ -110,7 +110,7 @@ impl ConsoleController for ScreenConsoleController<'_> {
     fn get_size(&self) -> (usize, usize) { (self.cols, self.rows) } 
 }
 
-impl Default for ScreenConsoleController<'_> {
+impl<'a, T: PlotTextDevice<'a>> Default for ScreenConsoleController<'a, T> {
     fn default() -> Self {
         Self::new(AnsiColor::White, AnsiColor::Black)
     }
@@ -118,7 +118,7 @@ impl Default for ScreenConsoleController<'_> {
 
 //TODO: parse ANSI commands in the string to set colors, move cursor, etc
 
-impl Write for ScreenConsoleController<'_> {
+impl<'a, T: PlotTextDevice<'a>> Write for ScreenConsoleController<'a, T> {
     fn write_str(&mut self, s: &str) -> Result<(), Error> {
         for ch in s.as_bytes() {
             if *ch == '\n' as u8 {

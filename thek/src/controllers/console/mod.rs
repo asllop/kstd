@@ -24,6 +24,15 @@ pub trait ConsoleController : Write + Default {
     fn get_size(&self) -> (usize, usize);
 }
 
-// TODO: configure with a feature
+use crate::{
+    devices::{
+        plot::{
+            text::{
+                ScreenTextDevice
+            }
+        }
+    }
+};
+
 /// Default console controller
-pub type DefaultConsoleController<'a> = ScreenConsoleController<'a>;
+pub type DefaultConsoleController<'a> = ScreenConsoleController<'a, ScreenTextDevice>;

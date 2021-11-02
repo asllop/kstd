@@ -4,17 +4,29 @@ use core::{
 
 use crate::{
     sys::{
-        KMutex, Void
+        KMutex, KLock, Void
     }
 };
+
+use super::super::super::Device;
 
 /// Screen text device.
 /// 
 /// Can't be directly instantiated.
 pub struct ScreenTextDevice(Void);
 
-/// Public stdout device.
-pub static STDOUT_DEVICE : KMutex<ScreenTextDevice> = KMutex::new(ScreenTextDevice(PhantomData));
+impl Device<'_> for ScreenTextDevice {
+    fn lock() ->  KLock<'static, Self> {
+        SCREEN_DEVICE.acquire()
+    }
+
+    fn force_unlock() {
+        SCREEN_DEVICE.reset();
+    }
+}
+
+/// Public screen device static instance.
+static SCREEN_DEVICE : KMutex<ScreenTextDevice> = KMutex::new(ScreenTextDevice(PhantomData));
 
 //TODO
 /*

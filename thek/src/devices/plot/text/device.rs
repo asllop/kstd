@@ -9,8 +9,10 @@ use crate::{
     sys::KError
 };
 
+use super::super::super::Device;
+
 /// Plot text device interface trait. All plot text devices must implement it.
-pub trait PlotTextDevice {
+pub trait PlotTextDevice<'a> : Device<'a> {
 
     /// Print one char with color at X,Y position
     /// 

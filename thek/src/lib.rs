@@ -79,7 +79,14 @@ use controllers::console::{
     ConsoleController, ScreenConsoleController
 };
 
-use devices::plot::text::STDOUT_DEVICE;
+use devices::{
+    Device,
+    plot::{
+        text::{
+            ScreenTextDevice
+        }
+    }
+};
 
 use core::{
     panic::PanicInfo,
@@ -89,8 +96,8 @@ use core::{
 /// Panic handler.
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
-    STDOUT_DEVICE.reset();
-    let mut con = ScreenConsoleController::new(AnsiColor::BrightWhite, AnsiColor::Red);
+    ScreenTextDevice::force_unlock();
+    let mut con = ScreenConsoleController::<ScreenTextDevice>::new(AnsiColor::BrightWhite, AnsiColor::Red);
     con.set_xy(0, 0).unwrap_or_default();
     write!(&mut con, "### Kernel {} ###", info).unwrap_or_default();
     loop {
