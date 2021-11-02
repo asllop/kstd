@@ -9,6 +9,9 @@ use thek::{
         layout::{
             MemBlockSet, //MemBlockLayout
         }
+    },
+    sys::{
+        KMutex
     }
 };
 
@@ -36,7 +39,21 @@ TODO: create tests for mem
 - Check that blocks are not overlaping.
 */
 
+struct TestStruct {
+    pub num: i32
+}
+
+static TEST : KMutex<TestStruct> = KMutex::new(TestStruct {
+    num: 10
+});
+
 fn main() {
+
+    let mut tst = TEST.acquire();
+    print!("{} ", tst.num);
+    tst.num = 50;
+    print!("{}", tst.num);
+
     let mut con = DefaultConsoleController::new(AnsiColor::BrightWhite, AnsiColor::BrightBlue);
     con.set_xy(33, 0).unwrap_or_default();
     write!(&mut con, " <<< TheK >>>").unwrap_or_default();

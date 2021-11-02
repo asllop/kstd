@@ -3,7 +3,7 @@ use core::{
         AtomicUsize, Ordering
     },
     cell::UnsafeCell,
-    ops::{Drop, Deref}
+    ops::{Drop, Deref, DerefMut},
 };
 
 /// Kernel mutex with queuing.
@@ -56,13 +56,15 @@ impl<T> KMutex<T> {
 /// 
 /// It's a smart pointer that gives access to inner type.
 pub struct KLock<'a, T> {
-    mutex: &'a KMutex<T>
+    mutex_ref: &'a KMutex<T>,
+    host_ref: &'a mut T
 }
 
 impl<'a, T> KLock<'a, T> {
-    const fn new(mutex: &'a KMutex<T>) -> Self {
+    fn new(mutex_ref: &'a KMutex<T>) -> Self {
         Self {
-            mutex
+            mutex_ref,
+            host_ref: unsafe { &mut *mutex_ref.host.get() }
         }
     }
 }
@@ -71,25 +73,18 @@ impl<'a, T> Deref for KLock<'a, T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
-        unsafe { 
-            &*self.mutex.host.get()
-        }
+        &*self.host_ref
     }
 }
 
-//TODO: to have mutable ref we need an UnsafeCell on self.mutex ref, otherwise it is an immutable ref.
-/*
 impl<'a, T> DerefMut for KLock<'a, T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        unsafe { 
-            &mut *self.mutex.host.get_mut()
-        }
+        self.host_ref
     }
 }
-*/
 
 impl<'a, T> Drop for KLock<'a, T> {
     fn drop(&mut self) {
-        self.mutex.release();
+        self.mutex_ref.release();
     }
 }
