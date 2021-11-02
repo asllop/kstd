@@ -75,7 +75,7 @@ unsafe impl GlobalAlloc for Memory {
             else {
                 core::mem::drop(lock);
                 // Call default implementation of realloc on a different type, otherwise we would get a recursive infinite loop
-                AUX_M.realloc(ptr, layout, new_size)
+                Super::realloc(&AUX_M, ptr, layout, new_size)
             }
         }
         else {
@@ -90,6 +90,8 @@ static GLOB_ALLOC : Memory = Memory;
 
 /// Awful trick used to avoid reimplementing GlobalAlloc::realloc and to emulate a call to "super" (trait default implementation of realloc).
 struct _M;
+
+type Super = _M;
 
 unsafe impl GlobalAlloc for _M {
     unsafe fn alloc(&self, _layout: Layout) -> *mut u8 {

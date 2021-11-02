@@ -53,7 +53,7 @@ fn main() {
 
     for i in 0..block_set.len() {
         let blay = block_set.block_at(i).unwrap();
-        println!("({}) - {:#x} , seg={} , blck={} , stck={}, pyld={}",
+        println!("({})\t{:#x}\tseg={}\tblck={}\tstck={}\tpyld={}",
             blay.num_segments,
             blay.payload_ptr as usize,
             blay.segment_size,
@@ -95,7 +95,7 @@ fn main() {
     }
     println!();
 
-    print_count(1);
+    print_count(3);
 
     let mut v = Vec::new();
     for _ in 0..1000 {

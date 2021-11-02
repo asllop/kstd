@@ -54,10 +54,6 @@ impl ScreenConsoleController<'_> {
         }
     }
 
-    fn pos(&self) -> usize {
-        self.cols * self.y + self.x
-    }
-
     fn inc_pos(&mut self) {
         self.x += 1;
         if self.x >= self.cols {
@@ -69,12 +65,29 @@ impl ScreenConsoleController<'_> {
         }
     }
 
+    fn scroll_up(&self) {
+        // Copy all lines one line up (from 1 to rows-1)
+        for line_num in 1..self.rows {
+            for char_num in 0..self.cols {
+                if let Ok((ch, text_color, bg_color)) = self.console_lock.read(char_num, line_num) {
+                    self.console_lock.print(char_num, line_num - 1, text_color, bg_color, ch).unwrap_or_default();
+                }
+            }
+        }
+        // Set last line empty
+        for char_num in 0..self.cols {
+            self.console_lock.print(char_num, self.rows - 1, self.text_color, self.bg_color, 0u8).unwrap_or_default();
+        }
+    }
+
     fn line_break(&mut self) {
-        self.y += 1;
-        self.x = 0;
-        if self.pos() >= self.cols * self.rows {
+        if self.y + 1 >= self.rows {
+            self.scroll_up();
             self.x = 0;
-            self.y = 0;
+        }
+        else {
+            self.y += 1;
+            self.x = 0;
         }
     }
 }
@@ -103,15 +116,20 @@ impl Default for ScreenConsoleController<'_> {
     }
 }
 
-//TODO: create a buffer and scroll all lines up when a new line happens
-//TODO: parse tab
 //TODO: parse ANSI commands in the string to set colors, move cursor, etc
 
 impl Write for ScreenConsoleController<'_> {
     fn write_str(&mut self, s: &str) -> Result<(), Error> {
         for ch in s.as_bytes() {
-            if *ch == 0x0Au8 {
+            if *ch == '\n' as u8 {
                 self.line_break();
+            }
+            else if *ch == '\t' as u8 {
+                let tab_num = self.x / 4;
+                self.x = (tab_num  + 1) * 4;
+                if self.x >= self.cols {
+                    self.x = self.cols - 1;
+                }
             }
             else {
                 if let Err(_) = self.console_lock.print(self.x, self.y, self.text_color, self.bg_color, *ch) {

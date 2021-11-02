@@ -15,7 +15,10 @@ pub trait PlotTextDevice {
     /// Print one char with color at X,Y position
     /// 
     /// Must NOT update cursor, this should be done in the controller.
-    fn print(&self, x: usize, y: usize, text_color: AnsiColor, bg_color: AnsiColor, ch: u8) -> Result<(), KError>;
+    fn print(&self, x: usize, y: usize, text_color: AnsiColor, bg_color: AnsiColor, ch: u8) -> Result<(), KError> {
+        self.set_char(x, y, ch)?;
+        self.set_color(x, y, text_color, bg_color)
+    }
 
     /// Set character at X,Y position, not changing the color.
     fn set_char(&self, x: usize, y: usize, ch: u8) -> Result<(), KError>;
@@ -23,7 +26,7 @@ pub trait PlotTextDevice {
     /// Set color at X,Y position, not changing the character.
     fn set_color(&self, x: usize, y: usize, text_color: AnsiColor, bg_color: AnsiColor) -> Result<(), KError>;
 
-    /// Read char and color at X,Y position
+    /// Read char and color at X,Y position, return char, text color and background color in this order
     fn read(&self, x: usize, y: usize) -> Result<(u8, AnsiColor, AnsiColor), KError>;
 
     /// Set cursor X,Y position
