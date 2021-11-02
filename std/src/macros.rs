@@ -2,7 +2,7 @@
 #[macro_export]
 macro_rules! print {
     ($($arg:tt)*) => ({
-        let mut con = thek::controllers::console::DefaultConsoleController::default();
+        let mut con = thek::DefaultConsoleController::default();
         core::fmt::write(&mut con, core::format_args!($($arg)*)).unwrap_or(());
     })
 }

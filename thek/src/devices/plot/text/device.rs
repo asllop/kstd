@@ -1,11 +1,5 @@
 use crate::{
-    controllers::{
-        console::{
-            ansi::{
-                AnsiColor
-            }
-        }
-    },
+    controllers::plot::text::ansi::AnsiColor,
     sys::KError
 };
 

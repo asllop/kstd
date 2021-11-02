@@ -7,30 +7,16 @@ use core::{
 };
 
 use crate::{
-    controllers::{
-        console::{
-            ansi::{
-                AnsiColor
-            }
-        }
-    },
-    devices::{
-        plot::{
-            text::{
-                PlotTextDevice
-            }
-        }
-    }
+    controllers::plot::text::ansi::AnsiColor,
+    devices::plot::text::PlotTextDevice
 };
 
 use crate::sys::{
     KLock, KError
 };
 
-use super::ConsoleController;
-
-/// Screen console controller
-pub struct ScreenConsoleController<'a, T: PlotTextDevice<'a>> {
+/// Plot text controller.
+pub struct PlotTextController<'a, T: PlotTextDevice<'a>> {
     cols: usize,
     rows: usize,
     x: usize,
@@ -40,7 +26,7 @@ pub struct ScreenConsoleController<'a, T: PlotTextDevice<'a>> {
     bg_color: AnsiColor
 }
 
-impl<'a, T: PlotTextDevice<'a>> ScreenConsoleController<'a, T> {
+impl<'a, T: PlotTextDevice<'a>> PlotTextController<'a, T> {
     pub fn new(text_color: AnsiColor, bg_color: AnsiColor) -> Self {
         let console_lock = T::lock();
         console_lock.enable_cursor().unwrap_or(());
@@ -90,13 +76,10 @@ impl<'a, T: PlotTextDevice<'a>> ScreenConsoleController<'a, T> {
             self.x = 0;
         }
     }
-}
 
-impl<'a, T: PlotTextDevice<'a>> ConsoleController for ScreenConsoleController<'a, T> {
+    pub fn get_xy(&self) -> (usize, usize) { (self.x, self.y) }
 
-    fn get_xy(&self) -> (usize, usize) { (self.x, self.y) }
-
-    fn set_xy(&mut self, x: usize, y: usize) -> Result<(), KError> {
+    pub fn set_xy(&mut self, x: usize, y: usize) -> Result<(), KError> {
         self.x = x;
         self.y = y;
         let (_, text_color, bg_color) = self.console_lock.read(x, y)?;
@@ -107,10 +90,10 @@ impl<'a, T: PlotTextDevice<'a>> ConsoleController for ScreenConsoleController<'a
         Ok(())
     }
 
-    fn get_size(&self) -> (usize, usize) { (self.cols, self.rows) } 
+    pub fn get_size(&self) -> (usize, usize) { (self.cols, self.rows) } 
 }
 
-impl<'a, T: PlotTextDevice<'a>> Default for ScreenConsoleController<'a, T> {
+impl<'a, T: PlotTextDevice<'a>> Default for PlotTextController<'a, T> {
     fn default() -> Self {
         Self::new(AnsiColor::White, AnsiColor::Black)
     }
@@ -118,7 +101,7 @@ impl<'a, T: PlotTextDevice<'a>> Default for ScreenConsoleController<'a, T> {
 
 //TODO: parse ANSI commands in the string to set colors, move cursor, etc
 
-impl<'a, T: PlotTextDevice<'a>> Write for ScreenConsoleController<'a, T> {
+impl<'a, T: PlotTextDevice<'a>> Write for PlotTextController<'a, T> {
     fn write_str(&mut self, s: &str) -> Result<(), Error> {
         for ch in s.as_bytes() {
             if *ch == '\n' as u8 {

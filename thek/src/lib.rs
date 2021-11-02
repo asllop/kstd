@@ -74,18 +74,14 @@ pub mod sys;
 
 pub mod mem;
 
-use controllers::console::{
+use controllers::plot::text::{
     ansi::AnsiColor,
-    ConsoleController, ScreenConsoleController
+    PlotTextController
 };
 
 use devices::{
     Device,
-    plot::{
-        text::{
-            ScreenTextDevice
-        }
-    }
+    plot::text::ScreenTextDevice
 };
 
 use core::{
@@ -93,11 +89,17 @@ use core::{
     fmt::Write
 };
 
+/// Default console controller
+pub type DefaultConsoleController<'a> = PlotTextController<'a, ScreenTextDevice>;
+
 /// Panic handler.
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
-    ScreenTextDevice::force_unlock();
-    let mut con = ScreenConsoleController::<ScreenTextDevice>::new(AnsiColor::BrightWhite, AnsiColor::Red);
+    ScreenTextDevice::reset_lock();
+    let mut con = PlotTextController::<ScreenTextDevice>::new(
+        AnsiColor::BrightWhite,
+        AnsiColor::Red
+    );
     con.set_xy(0, 0).unwrap_or_default();
     write!(&mut con, "### Kernel {} ###", info).unwrap_or_default();
     loop {

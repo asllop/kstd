@@ -6,14 +6,10 @@ use core::{
     },
 };
 use super::{
-    layout::{
-        MemBlockSet
-    },
+    layout::MemBlockSet,
     arch::raw_mem
 };
-use crate::sys::{
-    KMutex
-};
+use crate::sys::KMutex;
 
 extern crate alloc;
 

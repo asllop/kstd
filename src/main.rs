@@ -2,10 +2,8 @@
 #![no_std]
 
 use thek::{
-    controllers::console::{
-        ansi::AnsiColor,
-        DefaultConsoleController, ConsoleController
-    },
+    DefaultConsoleController,
+    controllers::plot::text::ansi::AnsiColor,
     mem::{
         arch::raw_mem,
         layout::{

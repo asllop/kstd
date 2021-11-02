@@ -2,10 +2,8 @@ use core::{
     marker::PhantomData
 };
 
-use crate::{
-    sys::{
-        KMutex, KLock, Void
-    }
+use crate::sys::{
+    KMutex, KLock, Void
 };
 
 use super::super::super::Device;
@@ -20,7 +18,7 @@ impl Device<'_> for ScreenTextDevice {
         SCREEN_DEVICE.acquire()
     }
 
-    fn force_unlock() {
+    fn reset_lock() {
         SCREEN_DEVICE.reset();
     }
 }
