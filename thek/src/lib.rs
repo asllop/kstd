@@ -38,7 +38,7 @@
 //! Drivers are splitted into 2 parts:
 //! 
 //! - **Devices** access hardware directly. They usually only offer very low level features, directly support by the underlying hardware. They implement API traits for interaction with the external world, like [`PlotTextDevice`][`devices::plot::text::PlotTextDevice`].
-//! - **Controllers** are arch independant and they use devices as an abstraction layer to control the hardware. They implement traits to offer a standard interface to users, like [`ConsoleController`].
+//! - **Controllers** are arch independant and they use devices as an abstraction layer to control the hardware. Each one can work with one type of devices, like [`OutputTextController`][`controllers::text::OutputTextController`], that works with [`PlotTextDevice`][`devices::plot::text::PlotTextDevice`]s. Controllers are for inout, output or both, so they implement [`Write`] and/or [`Read`].
 //! 
 //! Users should generally access controllers, because they offer a higher abstraction level and more features. Only use devices directly whenever you have a very specific and low level requirement.
 //! 
@@ -74,9 +74,9 @@ pub mod sys;
 
 pub mod mem;
 
-use controllers::plot::text::{
+use controllers::text::{
     ansi::AnsiColor,
-    PlotTextController
+    OutputTextController
 };
 
 use devices::{
@@ -91,14 +91,14 @@ use core::{
 
 // TODO: convert this into a dynamically registered controller
 /// Default console controller
-pub type DefaultConsoleController<'a> = PlotTextController<'a, ScreenTextDevice>;
+pub type DefaultConsoleController<'a> = OutputTextController<'a, ScreenTextDevice>;
 
 /// Panic handler.
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     // Just in case we panicked while still holding a lock on ScreenTextDevice
     ScreenTextDevice::mutex().reset();
-    let mut con = PlotTextController::<ScreenTextDevice>::new(
+    let mut con = OutputTextController::<ScreenTextDevice>::new(
         AnsiColor::BrightWhite,
         AnsiColor::Red
     );
@@ -121,4 +121,7 @@ It must be flexible enough to hold different kind of devicec:
 */
 
 //TODO
-// Create serial port device that implements PlotTextDevice to be used with PlotTextController
+// Create serial port device that implements PlotTextDevice to be used with OutputTextController
+
+//TODO:
+// Create controller for text input (keyboard, serial port, etc) => InputTextDevice

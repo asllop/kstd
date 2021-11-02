@@ -1,5 +1,5 @@
 use crate::{
-    controllers::plot::text::ansi::AnsiColor,
+    controllers::text::ansi::AnsiColor,
     sys::KError
 };
 

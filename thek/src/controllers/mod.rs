@@ -1,3 +1,3 @@
 //! Device constrollers.
 
-pub mod plot;
+pub mod text;

@@ -7,7 +7,7 @@ use core::{
 };
 
 use crate::{
-    controllers::plot::text::ansi::AnsiColor,
+    controllers::text::ansi::AnsiColor,
     devices::plot::text::PlotTextDevice
 };
 
@@ -15,8 +15,8 @@ use crate::sys::{
     KLock, KError
 };
 
-/// Plot text controller.
-pub struct PlotTextController<'a, T: PlotTextDevice<'a>> {
+/// Output text controller.
+pub struct OutputTextController<'a, T: PlotTextDevice<'a>> {
     cols: usize,
     rows: usize,
     x: usize,
@@ -26,7 +26,7 @@ pub struct PlotTextController<'a, T: PlotTextDevice<'a>> {
     bg_color: AnsiColor
 }
 
-impl<'a, T: PlotTextDevice<'a>> PlotTextController<'a, T> {
+impl<'a, T: PlotTextDevice<'a>> OutputTextController<'a, T> {
     pub fn new(text_color: AnsiColor, bg_color: AnsiColor) -> Self {
         let device_lock = T::mutex().acquire();
         device_lock.enable_cursor().unwrap_or(());
@@ -93,13 +93,13 @@ impl<'a, T: PlotTextDevice<'a>> PlotTextController<'a, T> {
     }
 }
 
-impl<'a, T: PlotTextDevice<'a>> Default for PlotTextController<'a, T> {
+impl<'a, T: PlotTextDevice<'a>> Default for OutputTextController<'a, T> {
     fn default() -> Self {
         Self::new(AnsiColor::White, AnsiColor::Black)
     }
 }
 
-impl<'a, T: PlotTextDevice<'a>> Write for PlotTextController<'a, T> {
+impl<'a, T: PlotTextDevice<'a>> Write for OutputTextController<'a, T> {
     fn write_str(&mut self, s: &str) -> Result<(), Error> {
         for ch in s.as_bytes() {
             match *ch {

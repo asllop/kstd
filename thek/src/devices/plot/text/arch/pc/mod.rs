@@ -8,7 +8,7 @@ use crate::{
     devices::plot::text::{
         ScreenTextDevice, PlotTextDevice
     },
-    controllers::plot::text::ansi::AnsiColor,
+    controllers::text::ansi::AnsiColor,
     sys::KError,
     arch::{
         inb, outb

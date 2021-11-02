@@ -3,7 +3,7 @@
 
 use thek::{
     DefaultConsoleController,
-    controllers::plot::text::ansi::AnsiColor,
+    controllers::text::ansi::AnsiColor,
     mem::{
         arch::raw_mem,
         layout::{
