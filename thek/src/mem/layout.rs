@@ -116,7 +116,7 @@ impl MemBlockLayout {
             Ok(())
         }
         else {
-            panic!("Trying to push segment pointer on a full stack");
+            Err(KError::FullSegStack)
         }
     }
 }

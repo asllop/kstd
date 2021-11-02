@@ -3,16 +3,19 @@
 pub enum KError {
     /// Index out of bounds
     OutBounds,
-    /// Wrong command
-    WrongCmd,
+    /// Segment stack is full
+    FullSegStack,
     /// Not classified error
     Other
 }
 
 impl KError {
     pub fn msg(&self) -> &str {
-        //TODO: convert code into a message
-        ""
+        match self {
+            KError::OutBounds => "Index out of bounds",
+            KError::FullSegStack => "Segment stack is full",
+            KError::Other => "Generic error",
+        }
     }
 }
 

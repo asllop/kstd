@@ -54,8 +54,8 @@ unsafe impl GlobalAlloc for Memory {
         let lock = MEM_MUTEX.acquire();
         let block_set = self.get_block_set();
         if let Some(block_layout) = block_set.owns_segment(ptr) {
-            if let Err(_) = block_layout.push_address(ptr) {
-                panic!("Could not push address into segment stack");
+            if let Err(e) = block_layout.push_address(ptr) {
+                panic!("Could not push address into segment stack: {}", e.msg());
             }
             lock.fetch_sub(1, Ordering::Relaxed);
         }
