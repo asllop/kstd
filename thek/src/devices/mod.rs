@@ -2,6 +2,8 @@
 
 pub mod plot;
 
+pub mod com;
+
 use crate::sys::KMutex;
 
 /// The trait that all devices must implement.

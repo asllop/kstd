@@ -4,6 +4,7 @@
 use thek::{
     DefaultConsoleController,
     controllers::text::ansi::AnsiColor,
+    devices::com::port::uart::UartDevice,
     mem::{
         arch::raw_mem,
         layout::{
@@ -15,11 +16,13 @@ use thek::{
     }
 };
 
-use std::prelude::v1::*;
-
-use std::fmt::Write;
-
-use core::mem::size_of;
+use std::{
+    prelude::v1::*,
+    fmt::{
+        Write
+    },
+    mem::size_of
+};
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
@@ -139,8 +142,12 @@ fn _fail_unwrap() {
 
 fn _fail_oom() {
     // Crash, out of memory!
+    let mut serial = UartDevice::default();
     let mut v = Vec::new();
+    let mut i = 0;
     loop {
+        write!(&mut serial, "{}\n", i).unwrap_or_default();
         v.push(String::from("Nova cadena"));
+        i += 1;
     }
 }
