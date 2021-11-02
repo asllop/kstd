@@ -4,8 +4,8 @@ pub mod plot;
 
 use crate::sys::KMutex;
 
-/// Trait that all devices must implement.
+/// The trait that all devices must implement.
 pub trait Device<'a> {
-    /// Return the k mutex that holds the driver.
+    /// Return the kernel mutex that holds the device.
     fn mutex() -> &'a KMutex<Self> where Self: Sized;
 }

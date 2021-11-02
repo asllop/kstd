@@ -21,21 +21,21 @@ pub struct PlotTextController<'a, T: PlotTextDevice<'a>> {
     rows: usize,
     x: usize,
     y: usize,
-    console_lock: KLock<'a, T>,
+    device_lock: KLock<'a, T>,
     text_color: AnsiColor,
     bg_color: AnsiColor
 }
 
 impl<'a, T: PlotTextDevice<'a>> PlotTextController<'a, T> {
     pub fn new(text_color: AnsiColor, bg_color: AnsiColor) -> Self {
-        let console_lock = T::mutex().acquire();
-        console_lock.enable_cursor().unwrap_or(());
-        let (cols, rows) = console_lock.get_size().unwrap_or((0,0));
-        let (x, y) = console_lock.get_cursor().unwrap_or((0,0));
+        let device_lock = T::mutex().acquire();
+        device_lock.enable_cursor().unwrap_or(());
+        let (cols, rows) = device_lock.get_size().unwrap_or((0,0));
+        let (x, y) = device_lock.get_cursor().unwrap_or((0,0));
         Self {
             cols, rows,
             x, y,
-            console_lock,
+            device_lock,
             text_color, bg_color
         }
     }
@@ -47,11 +47,11 @@ impl<'a, T: PlotTextDevice<'a>> PlotTextController<'a, T> {
     pub fn set_xy(&mut self, x: usize, y: usize) -> Result<(), KError> {
         self.x = x;
         self.y = y;
-        let (_, text_color, bg_color) = self.console_lock.read(x, y)?;
+        let (_, text_color, bg_color) = self.device_lock.read(x, y)?;
         if let (AnsiColor::Black, AnsiColor::Black) = (text_color, bg_color) {
-            self.console_lock.set_color(x, y, self.text_color, self.bg_color)?;
+            self.device_lock.set_color(x, y, self.text_color, self.bg_color)?;
         }
-        self.console_lock.set_cursor(x, y)?;
+        self.device_lock.set_cursor(x, y)?;
         Ok(())
     }
 
@@ -74,14 +74,14 @@ impl<'a, T: PlotTextDevice<'a>> PlotTextController<'a, T> {
         // Copy all lines one line up (from 1 to rows-1)
         for line_num in 1..self.rows {
             for char_num in 0..self.cols {
-                if let Ok((ch, text_color, bg_color)) = self.console_lock.read(char_num, line_num) {
-                    self.console_lock.print(char_num, line_num - 1, text_color, bg_color, ch).unwrap_or_default();
+                if let Ok((ch, text_color, bg_color)) = self.device_lock.read(char_num, line_num) {
+                    self.device_lock.print(char_num, line_num - 1, text_color, bg_color, ch).unwrap_or_default();
                 }
             }
         }
         // Set last line empty
         for char_num in 0..self.cols {
-            self.console_lock.print(char_num, self.rows - 1, self.text_color, self.bg_color, 0u8).unwrap_or_default();
+            self.device_lock.print(char_num, self.rows - 1, self.text_color, self.bg_color, 0u8).unwrap_or_default();
         }
     }
 
@@ -119,7 +119,7 @@ impl<'a, T: PlotTextDevice<'a>> Write for PlotTextController<'a, T> {
                 }
             }
             else {
-                if let Err(_) = self.console_lock.print(self.x, self.y, self.text_color, self.bg_color, *ch) {
+                if let Err(_) = self.device_lock.print(self.x, self.y, self.text_color, self.bg_color, *ch) {
                     return Err(Error);
                 }
                 self.inc_pos();
