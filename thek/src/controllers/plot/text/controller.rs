@@ -40,6 +40,25 @@ impl<'a, T: PlotTextDevice<'a>> PlotTextController<'a, T> {
         }
     }
 
+    pub fn get_xy(&self) -> (usize, usize) {
+        (self.x, self.y)
+    }
+
+    pub fn set_xy(&mut self, x: usize, y: usize) -> Result<(), KError> {
+        self.x = x;
+        self.y = y;
+        let (_, text_color, bg_color) = self.console_lock.read(x, y)?;
+        if let (AnsiColor::Black, AnsiColor::Black) = (text_color, bg_color) {
+            self.console_lock.set_color(x, y, self.text_color, self.bg_color)?;
+        }
+        self.console_lock.set_cursor(x, y)?;
+        Ok(())
+    }
+
+    pub fn get_size(&self) -> (usize, usize) {
+        (self.cols, self.rows)
+    } 
+
     fn inc_pos(&mut self) {
         self.x += 1;
         if self.x >= self.cols {
@@ -76,21 +95,6 @@ impl<'a, T: PlotTextDevice<'a>> PlotTextController<'a, T> {
             self.x = 0;
         }
     }
-
-    pub fn get_xy(&self) -> (usize, usize) { (self.x, self.y) }
-
-    pub fn set_xy(&mut self, x: usize, y: usize) -> Result<(), KError> {
-        self.x = x;
-        self.y = y;
-        let (_, text_color, bg_color) = self.console_lock.read(x, y)?;
-        if let (AnsiColor::Black, AnsiColor::Black) = (text_color, bg_color) {
-            self.console_lock.set_color(x, y, self.text_color, self.bg_color)?;
-        }
-        self.console_lock.set_cursor(x, y)?;
-        Ok(())
-    }
-
-    pub fn get_size(&self) -> (usize, usize) { (self.cols, self.rows) } 
 }
 
 impl<'a, T: PlotTextDevice<'a>> Default for PlotTextController<'a, T> {

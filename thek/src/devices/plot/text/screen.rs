@@ -15,16 +15,16 @@ pub struct ScreenTextDevice(Void);
 
 impl Device<'_> for ScreenTextDevice {
     fn lock() ->  KLock<'static, Self> {
-        SCREEN_DEVICE.acquire()
+        SCREEN_TEXT_DEVICE.acquire()
     }
 
     fn reset_lock() {
-        SCREEN_DEVICE.reset();
+        SCREEN_TEXT_DEVICE.reset();
     }
 }
 
-/// Public screen device static instance.
-static SCREEN_DEVICE : KMutex<ScreenTextDevice> = KMutex::new(ScreenTextDevice(PhantomData));
+/// Screen device static instance.
+static SCREEN_TEXT_DEVICE : KMutex<ScreenTextDevice> = KMutex::new(ScreenTextDevice(PhantomData));
 
 //TODO
 /*

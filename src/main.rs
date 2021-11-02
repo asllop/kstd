@@ -37,12 +37,12 @@ TODO: create tests for mem
 */
 
 fn main() {
+    let mut con = DefaultConsoleController::new(AnsiColor::BrightWhite, AnsiColor::BrightBlue);
+    con.set_xy(33, 0).unwrap_or_default();
+    write!(&mut con, " <<< TheK >>>").unwrap_or_default();
+    core::mem::drop(con);
 
-    {
-        let mut con = DefaultConsoleController::new(AnsiColor::BrightWhite, AnsiColor::BrightBlue);
-        con.set_xy(33, 0).unwrap_or_default();
-        writeln!(&mut con, " <<< TheK >>>").unwrap_or_default();
-    }
+    print!("\n\n");
 
     let block_set = unsafe {
         let (ptr, _) = raw_mem();

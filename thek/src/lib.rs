@@ -89,6 +89,7 @@ use core::{
     fmt::Write
 };
 
+// TODO: convert this into a dynamically registered controller
 /// Default console controller
 pub type DefaultConsoleController<'a> = PlotTextController<'a, ScreenTextDevice>;
 
