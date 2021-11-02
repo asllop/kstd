@@ -108,21 +108,44 @@ impl<'a, T: PlotTextDevice<'a>> Default for PlotTextController<'a, T> {
 impl<'a, T: PlotTextDevice<'a>> Write for PlotTextController<'a, T> {
     fn write_str(&mut self, s: &str) -> Result<(), Error> {
         for ch in s.as_bytes() {
-            if *ch == '\n' as u8 {
-                self.line_break();
-            }
-            else if *ch == '\t' as u8 {
-                let tab_num = self.x / 4;
-                self.x = (tab_num  + 1) * 4;
-                if self.x >= self.cols {
-                    self.x = self.cols - 1;
+            match *ch {
+                0x0a => {
+                    // newline
+                    self.line_break();
+                },
+                0x09 => {
+                    // tab
+                    let tab_num = self.x / 4;
+                    self.x = (tab_num  + 1) * 4;
+                    if self.x >= self.cols {
+                        self.x = self.cols - 1;
+                    }
+                },
+                0x08 => {
+                    // backspace
+                    if self.x > 0 {
+                        self.x -= 1;
+                    }
+                    else {
+                        if self.y > 0 {
+                            self.x = self.cols - 1;
+                            self.y -= 1;
+                        }
+                        else {
+                            // X and Y are 0, screen origin, do nothing
+                        }
+                    }
+                },
+                0x1b => {
+                    // TODO: ANSI command
+                },
+                _ => {
+                    // Everything else is considered a printable char (even if it's not)
+                    if let Err(_) = self.device_lock.print(self.x, self.y, self.text_color, self.bg_color, *ch) {
+                        return Err(Error);
+                    }
+                    self.inc_pos();
                 }
-            }
-            else {
-                if let Err(_) = self.device_lock.print(self.x, self.y, self.text_color, self.bg_color, *ch) {
-                    return Err(Error);
-                }
-                self.inc_pos();
             }
         }
         if let Err(_) = self.set_xy(self.x, self.y) {
