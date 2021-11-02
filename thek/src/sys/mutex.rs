@@ -54,7 +54,7 @@ impl<T> KMutex<T> {
 
 /// Lock returned by [`KMutex::acquire()`].
 /// 
-/// It's a smart pointer that gives access to inner type.
+/// It's a smart pointer that gives mutable access to the inner value.
 pub struct KLock<'a, T> {
     mutex_ref: &'a KMutex<T>,
     host_ref: &'a mut T

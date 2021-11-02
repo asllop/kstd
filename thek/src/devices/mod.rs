@@ -2,12 +2,10 @@
 
 pub mod plot;
 
-use crate::sys::KLock;
+use crate::sys::KMutex;
 
 /// Trait that all devices must implement.
 pub trait Device<'a> {
-    /// Acquire lock on device
-    fn lock() ->  KLock<'a, Self> where Self: Sized;
-    /// Reset lock. For emergency cases only.
-    fn reset_lock();
+    /// Return the k mutex that holds the driver.
+    fn mutex() -> &'a KMutex<Self> where Self: Sized;
 }

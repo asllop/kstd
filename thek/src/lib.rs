@@ -96,7 +96,8 @@ pub type DefaultConsoleController<'a> = PlotTextController<'a, ScreenTextDevice>
 /// Panic handler.
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
-    ScreenTextDevice::reset_lock();
+    // Just in case we panicked while still holding a lock on ScreenTextDevice
+    ScreenTextDevice::mutex().reset();
     let mut con = PlotTextController::<ScreenTextDevice>::new(
         AnsiColor::BrightWhite,
         AnsiColor::Red

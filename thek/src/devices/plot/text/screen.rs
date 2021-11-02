@@ -3,7 +3,7 @@ use core::{
 };
 
 use crate::sys::{
-    KMutex, KLock, Void
+    KMutex, Void
 };
 
 use super::super::super::Device;
@@ -14,12 +14,8 @@ use super::super::super::Device;
 pub struct ScreenTextDevice(Void);
 
 impl Device<'_> for ScreenTextDevice {
-    fn lock() ->  KLock<'static, Self> {
-        SCREEN_TEXT_DEVICE.acquire()
-    }
-
-    fn reset_lock() {
-        SCREEN_TEXT_DEVICE.reset();
+    fn mutex() -> &'static KMutex<Self> {
+        &SCREEN_TEXT_DEVICE
     }
 }
 

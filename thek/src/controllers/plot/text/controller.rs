@@ -28,7 +28,7 @@ pub struct PlotTextController<'a, T: PlotTextDevice<'a>> {
 
 impl<'a, T: PlotTextDevice<'a>> PlotTextController<'a, T> {
     pub fn new(text_color: AnsiColor, bg_color: AnsiColor) -> Self {
-        let console_lock = T::lock();
+        let console_lock = T::mutex().acquire();
         console_lock.enable_cursor().unwrap_or(());
         let (cols, rows) = console_lock.get_size().unwrap_or((0,0));
         let (x, y) = console_lock.get_cursor().unwrap_or((0,0));
