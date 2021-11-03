@@ -43,4 +43,6 @@ impl UartDevice {
     }
 
     //TODO: receive method
+
+    //TODO: setup interruptions
 }

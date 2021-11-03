@@ -4,7 +4,6 @@
 use thek::{
     DefaultConsoleController,
     controllers::text::ansi::AnsiColor,
-    devices::com::port::uart::UartDevice,
     mem::{
         arch::raw_mem,
         layout::{
@@ -16,6 +15,7 @@ use thek::{
     }
 };
 
+use core::default::Default;
 use std::{
     prelude::v1::*,
     fmt::{
@@ -26,13 +26,25 @@ use std::{
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    thek::mem::init::setup_mem(&[
-        (4*1024, 50),       // 50% of mem in segments of 4KB
-        (256*1024, 25),     // 25% of mem in segments of 256KB
-        (usize::MAX, 25)    // Remaining 25% in one single segment
-    ]);
+    _small_allocs_mem();
     main();
     loop {}
+}
+
+/// Setup memory schema optimized for small allocations
+fn _small_allocs_mem() {
+    thek::mem::init::setup_mem(&[
+        (256, 90),              // 90% of mem in segments of 256Bytes
+        (usize::MAX, 10)        // Remaining 10% in one segment
+    ]);
+}
+
+/// Setup memory schema optimized for big allocations
+fn _big_allocs_mem() {
+    thek::mem::init::setup_mem(&[
+        (1024, 10),         // 10% of mem in segments of 1KB
+        (usize::MAX, 90)    // Remaining 90% in one single segment
+    ]);
 }
 
 /*
@@ -115,17 +127,19 @@ fn main() {
 
     print_count(3);
 
+    /*
     let mut v = Vec::new();
     for _ in 0..1000 {
         v.push(String::from("Nova cadena"));
     }
+    */
 
     // Print a backspace to remove the 'A'
     print!("\nHOLA\x08");
 
     //_fail_unwrap();
-
-    //_fail_oom();
+    //_fail_oom_big_allocs();
+    //_fail_oom_small_allocs();
 }
 
 fn print_count(n: i32) {
@@ -140,14 +154,37 @@ fn _fail_unwrap() {
     a.unwrap();
 }
 
-fn _fail_oom() {
+struct Test {
+    pub num: usize,
+    pub arr: [u8; 10]
+}
+
+impl Default for Test {
+    fn default() -> Self {
+        Self {
+            num: 0,
+            arr: [0; 10]
+        }
+    }
+}
+
+fn _fail_oom_big_allocs() {
     // Crash, out of memory!
-    let mut serial = UartDevice::default();
     let mut v = Vec::new();
     let mut i = 0;
     loop {
-        write!(&mut serial, "{}\n", i).unwrap_or_default();
-        v.push(String::from("Nova cadena"));
+        v.push(Test::default());
+        i += 1;
+    }
+}
+
+
+fn _fail_oom_small_allocs() {
+    // Crash, out of memory!
+    let mut v = Vec::new();
+    let mut i = 0;
+    loop {
+        v.push(String::from("This is a string with many chars ...... .... .... ....... ....... ...... ........ ..... .... .. finish!"));
         i += 1;
     }
 }

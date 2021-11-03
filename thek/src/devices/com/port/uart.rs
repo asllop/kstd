@@ -1,5 +1,10 @@
 //! UART port device.
 
+use core::default::Default;
+use core::fmt::{
+    Write, Error
+};
+
 pub enum UartSpeed {
     Baud110, Baud300, Baud600, Baud1200, Baud2400, Baud4800, Baud9600, Baud14400, Baud19200, Baud38400, Baud57600, Baud115200, Baud128000, Baud256000
 }
@@ -7,11 +12,6 @@ pub enum UartSpeed {
 pub enum UartParity {
     None, Even, Odd, Mark, Space 
 }
-
-use core::default::Default;
-use core::fmt::{
-    Write, Error
-};
 
 /// Serial (UART) device
 pub struct UartDevice {
@@ -30,11 +30,9 @@ impl UartDevice {
         data_bits: u8,
         stop_bits: u8,
         speed: UartSpeed) -> Self {
-            let _self = Self {
+            Self {
                 port_number, parity, data_bits, stop_bits, speed
-            };
-            _self.init_port();
-            _self
+            }
     }
 
     /// Send string over the wire.

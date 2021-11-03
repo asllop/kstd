@@ -46,9 +46,10 @@ impl<T> KMutex<T> {
     /// Reset queue.
     /// 
     /// `WARNING`: Don't call it unless you know very well what you are doing!
-    pub fn reset(&self) {
+    pub fn reset(&self) -> &Self {
         self.current_num.store(0, Ordering::Relaxed);
         self.queue_num.store(0, Ordering::Relaxed);
+        self
     }
 }
 
