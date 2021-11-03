@@ -110,18 +110,19 @@ unsafe impl GlobalAlloc for _M {
 
 static AUX_M : _M = _M;
 
-/// Number of segments used. It acts as both, an statistical counter and a lock.
+/// Number of segments used. It acts as both, a counter for statistics and a lock to acquire the Memory resource.
 static NUM_SEGS : KMutex<AtomicUsize> = KMutex::new(AtomicUsize::new(0));
 
-/// Actual memopry used. It acts as both, an statistical counter and a lock.
+/// Actual memory used. It acts as both, a counter for statistics and a lock to acquire the Memory resource.
 static USED_MEM : KMutex<AtomicUsize> = KMutex::new(AtomicUsize::new(0));
 
 #[alloc_error_handler]
 fn alloc_error_handler(layout: alloc::alloc::Layout) -> ! {
+    //TODO: stop task scheduling, once we have multitasking
     let block_set = unsafe { GLOB_ALLOC.get_block_set() };
     let mut total_num_segments = 0;
     let mut total_mem = 0;
-    for i in (0..block_set.num_blocks) {
+    for i in 0..block_set.num_blocks {
         if let Some(block) = block_set.block_at(i) {
             total_mem += block.segment_size * block.num_segments;
             total_num_segments += block.num_segments;

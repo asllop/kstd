@@ -7,7 +7,7 @@ use thek::{
     mem::{
         arch::raw_mem,
         layout::{
-            MemBlockSet, //MemBlockLayout
+            MemBlockSet,
         }
     },
     sys::{
@@ -42,7 +42,7 @@ fn _small_allocs_mem() {
 /// Setup memory schema optimized for big allocations
 fn _big_allocs_mem() {
     thek::mem::init::setup_mem(&[
-        (1024, 10),         // 10% of mem in segments of 1KB
+        (4*1024, 10),       // 10% of mem in segments of 4KB
         (usize::MAX, 90)    // Remaining 90% in one single segment
     ]);
 }
@@ -155,15 +155,15 @@ fn _fail_unwrap() {
 }
 
 struct Test {
-    pub num: usize,
-    pub arr: [u8; 10]
+    _num: usize,
+    _arr: [u8; 10]
 }
 
 impl Default for Test {
     fn default() -> Self {
         Self {
-            num: 0,
-            arr: [0; 10]
+            _num: 0,
+            _arr: [0; 10]
         }
     }
 }
@@ -171,10 +171,8 @@ impl Default for Test {
 fn _fail_oom_big_allocs() {
     // Crash, out of memory!
     let mut v = Vec::new();
-    let mut i = 0;
     loop {
         v.push(Test::default());
-        i += 1;
     }
 }
 
@@ -182,9 +180,7 @@ fn _fail_oom_big_allocs() {
 fn _fail_oom_small_allocs() {
     // Crash, out of memory!
     let mut v = Vec::new();
-    let mut i = 0;
     loop {
         v.push(String::from("This is a string with many chars ...... .... .... ....... ....... ...... ........ ..... .... .. finish!"));
-        i += 1;
     }
 }
