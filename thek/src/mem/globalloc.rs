@@ -130,7 +130,7 @@ fn alloc_error_handler(layout: alloc::alloc::Layout) -> ! {
     let used_num_segments = NUM_SEGS.reset().acquire().load(Ordering::Relaxed);
     let used_mem = USED_MEM.reset().acquire().load(Ordering::Relaxed);
     panic!(
-        "Memory allocation error: {:?} , Segments allocated = {}/{}({:.2}%) , Memory used = {}/{}({:.2}%)",
+        "Memory allocation error: {:?} | Segments allocated: {}/{}({:.2}%) | Memory used: {}/{}({:.2}%)",
         layout,
         used_num_segments,
         total_num_segments,
