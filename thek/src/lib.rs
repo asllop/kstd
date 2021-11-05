@@ -42,9 +42,24 @@
 //! 
 //! Users should generally access controllers, because they offer a higher abstraction level and more features. Only use devices directly whenever you have a very specific and low level requirement.
 //! 
+//! # Choosing The Right Memory Schema
+//! 
+//! TODO
+//! 
+//! # Real Time Applications
+//! 
+//! Designing RT apps requieres some care, here we are going to mention some of the common pitfalls and alternatives to avoid them.
+//! 
+//! ## Allocating Memory
+//! 
+//! TODO
+//! 
+//! ### Hash Maps
+//! 
+//! TODO
+//! 
 //! # Next steps:
 //! 
-//! - Explore OS dependencies to build std.
 //! - Implement SMP support.
 //! - Implement multithreading.
 //! - Implement async (optional).

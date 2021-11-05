@@ -12,6 +12,12 @@ use thek::{
     },
     sys::{
         KMutex
+    },
+    devices::{
+        Device,
+        com::port::uart::{
+            UartDevice, UartParity, UartSpeed
+        }
     }
 };
 
@@ -136,6 +142,13 @@ fn main() {
 
     // Print a backspace to remove the 'A'
     print!("\nHOLA\x08");
+
+    let mut port = UartDevice::mutex().acquire();
+    port.config(0, UartParity::None, 8, 1, UartSpeed::Baud9600);
+    for i in 0..10 {
+        write!(&mut port, "Loop {}\n", i).unwrap_or_default();
+    }
+    write!(&mut port, "\n\x1b[10CHOLA\n").unwrap_or_default();
 
     //_fail_unwrap();
     //_fail_oom_big_allocs();
