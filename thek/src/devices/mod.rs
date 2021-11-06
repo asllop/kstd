@@ -37,6 +37,22 @@ pub trait StorageDevice {
     fn write(&mut self, size: usize, buffer: &u8) -> Result<usize, KError>;
 }
 
+/// Text screen cursor shape.
+pub enum CursorShape {
+    FullBlock,
+    HalfBlock,
+    UnderLine,
+    Default
+}
+
+/// Text screen cursor blinking.
+pub enum CursorBlink {
+    Fast,
+    Slow,
+    None,
+    Default
+}
+
 /// Text mode screen device interface.
 pub trait TextScreenDevice {
     /// Set character at X,Y position, not changing the color.
@@ -55,19 +71,16 @@ pub trait TextScreenDevice {
     fn read(&self, x: usize, y: usize) -> Result<(u8, AnsiColor, AnsiColor), KError>;
 
     /// Set cursor X,Y position.
-    fn set_cursor(&mut self, x: usize, y: usize) -> Result<(), KError>;
+    fn set_position(&mut self, x: usize, y: usize) -> Result<(), KError>;
 
     /// Get cursor X,Y position.
-    fn get_cursor(&self) -> Result<(usize, usize), KError>;
+    fn get_position(&self) -> Result<(usize, usize), KError>;
 
-    /// Enable cursor (set visible).
-    fn enable_cursor(&mut self) -> Result<(), KError>;
+    /// Config cursor options.
+    fn config_cursor(&mut self, enabled: bool, shape: CursorShape, blink: CursorBlink) -> Result<(), KError>;
 
-    /// Disable cursor (set invisible).
-    fn disable_cursor(&mut self) -> Result<(), KError>;
-
-    /// Get console size in Columns,Rows.
-    fn get_size(&self) -> Result<(usize, usize), KError>;
+    /// Get screen size in Columns,Rows.
+    fn size(&self) -> Result<(usize, usize), KError>;
 }
 
 /// Keyset device interface.
