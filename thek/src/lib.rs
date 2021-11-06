@@ -124,20 +124,3 @@ fn panic(info: &PanicInfo) -> ! {
         arch::halt();
     }
 }
-
-//TODO
-/*
-Create a dynamic interface to register devices and std out/in.
-It must be flexible enough to hold different kind of devicec:
-- Output (console, serial port, etc).
-- Input (keybord, mouse, serial port, etc).
-- Network.
-- Disk/storage devices.
-- Graphics?
-*/
-
-//TODO
-// Create serial port device that implements PlotTextDevice to be used with OutputTextController
-
-//TODO:
-// Create controller for text input (keyboard, serial port, etc) => InputTextDevice
