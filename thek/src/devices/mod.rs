@@ -1,4 +1,4 @@
-//! Abstraction types for direct hardware access.
+//! Types for hardware access.
 
 pub mod plot;
 

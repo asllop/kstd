@@ -12,6 +12,16 @@ pub trait Device<'a> {
     fn mutex() -> &'a KMutex<Self> where Self: Sized;
 }
 
+/// Encapsulate all devie types.
+pub enum DeviceType {
+    Storage(&'static dyn Storage),
+    TextScreen(&'static dyn TextScreen),
+    Keyset(&'static dyn Keyset),
+    Network(&'static dyn Network),
+    Port(&'static dyn Port),
+    Generic(&'static dyn Generic),
+}
+
 /// Provides an identifier.
 pub trait Id {
     fn id(&self) -> &str;
@@ -21,7 +31,7 @@ pub trait Id {
 //TODO: define an interruption trait to handle interrupts
 
 /// Storage device interface.
-pub trait StorageDevice : Id {
+pub trait Storage : Id {
     /// Seek to `position` in sectors.
     /// * Return: actual position after seek.
     fn seek(&mut self, position: usize) -> Result<usize, KError>;
@@ -54,21 +64,21 @@ pub enum CursorBlink {
 }
 
 /// Text mode screen device interface.
-pub trait TextScreenDevice : Id {
+pub trait TextScreen : Id {
     /// Set character at X,Y position, not changing the color.
-    fn set_char(&mut self, x: usize, y: usize, ch: u8) -> Result<(), KError>;
+    fn set_char(&mut self, x: usize, y: usize, ch: char) -> Result<(), KError>;
 
     /// Set color at X,Y position, not changing the character.
     fn set_color(&mut self, x: usize, y: usize, text_color: AnsiColor, bg_color: AnsiColor) -> Result<(), KError>;
 
     /// Print one char with color at X,Y position.
-    fn write(&mut self, x: usize, y: usize, text_color: AnsiColor, bg_color: AnsiColor, ch: u8) -> Result<(), KError> {
+    fn write(&mut self, x: usize, y: usize, text_color: AnsiColor, bg_color: AnsiColor, ch: char) -> Result<(), KError> {
         self.set_char(x, y, ch)?;
         self.set_color(x, y, text_color, bg_color)
     }
 
     /// Read char and color at X,Y position, return char, text color and background color in this order.
-    fn read(&self, x: usize, y: usize) -> Result<(u8, AnsiColor, AnsiColor), KError>;
+    fn read(&self, x: usize, y: usize) -> Result<(char, AnsiColor, AnsiColor), KError>;
 
     /// Set cursor X,Y position.
     fn set_position(&mut self, x: usize, y: usize) -> Result<(), KError>;
@@ -83,39 +93,81 @@ pub trait TextScreenDevice : Id {
     fn size(&self) -> Result<(usize, usize), KError>;
 }
 
-/// Keyset device interface.
-pub trait KeysetDevice : Id {
-    /// There is a key ready to be read.
-    fn is_ready(&self) -> bool;
-    /// Read key as processed character. Blocks if no key ready.
-    fn read(&self) -> char;
-    /// Read raw key code. Blocks if no key ready.
-    fn read_raw(&self) -> u8;
+/// Processed char.
+pub enum KeyChar {
+    Press(char),
+    Release(char)
 }
 
-/// Generic device interface.
-pub trait GenericDevice : Id {
-    /// Read `size` bytes into `buffer`. Must be big enough to allocate size bytes.
-    /// * Return: actual bytes read.
-    fn read(&self, size: usize, buffer: &mut u8) -> Result<usize, KError>;
-    /// Write `size` bytes from `buffer`. Must be big enough to contain size bytes.
-    /// * Return: actual bytes written.
-    fn write(&mut self, size: usize, buffer: &u8) -> Result<usize, KError>;
-    /// Send `command` with optional `data`.
-    /// * Return: command result.
-    fn cmd(&mut self, command: usize, data: Option<&u8>) -> Result<Option<&u8>, KError>;
+/// Keyset device interface.
+pub trait Keyset : Id {
+    /// There is a key ready to be read.
+    fn is_ready(&self) -> bool;
+    /// Read raw key code. Blocks if no key ready.
+    fn read(&self) -> u8;
+    /// Read key as a processed character. Blocks if no key ready.
+    fn char_read(&self) -> KeyChar;
+}
+
+/// Network type.
+pub enum NetworkType {
+    Loopback,
+    Ethernet,
+    Slip,
+    Ppp,
+    TokenRing
 }
 
 /// Network device interface.
-pub trait NetworkDevice : Id {
+pub trait Network : Id {
     /// Read `size` bytes into `buffer`. Must be big enough to allocate size bytes.
     /// * Return: actual bytes read.
     fn read(&self, size: usize, buffer: &mut u8) -> Result<usize, KError>;
     /// Write `size` bytes from `buffer`. Must be big enough to contain size bytes.
     /// * Return: actual bytes written.
     fn write(&mut self, size: usize, buffer: &u8) -> Result<usize, KError>;
+    /// Network type.
+    fn net_type(&self) -> NetworkType;
+    /// As Ethernet.
+    fn as_eth(&self) -> Option<&dyn EthernetNetwork>;
+    /// As SLIP.
+    fn as_slip(&self) -> Option<&dyn SlipNetwork>;
+    //TODO: conversion to other network types
+}
 
-    //TODO: config network device
+/// Ethernet interface
+pub trait EthernetNetwork : Network {
+    /// TODO: configure an ethernet network interface
+    fn config(&self);
+}
+
+/// SLIP interface
+pub trait SlipNetwork : Network {
+    /// TODO: configure a slip network interface
+    fn config(&self);
+}
+
+/// Port type.
+pub enum PortType {
+    Uart,
+    Spi,
+    I2c,
+    OneWire,
+    Usb
+}
+
+pub trait Port : Id {
+    /// Write data to port.
+    fn write(&mut self, b: u8) -> Result<(), KError>;
+    /// Read data from port. Blocks if not data ready.
+    fn read(&self) -> Result<u8, KError>;
+    /// There is data ready to be read.
+    fn is_ready(&self) -> bool;
+    /// Port type.
+    fn port_type(&self) -> PortType;
+    /// As UART.
+    fn as_uart(&self) -> Option<&dyn Uart>;
+    //TODO: other port conversions
 }
 
 /// UART speed enum.
@@ -129,19 +181,26 @@ pub enum UartParity {
 }
 
 /// UART port device interface.
-pub trait UartPortDevice : Id {
+pub trait Uart : Port {
     /// Configure the port.
     fn config(&mut self,
         parity: UartParity,
         data_bits: u8,
         stop_bits: u8,
         speed: UartSpeed) -> Result<(), KError>;
-    /// Write data to port.
-    fn write(&mut self, b: u8) -> Result<(), KError>;
-    /// Read data from port. Blocks if not data ready.
-    fn read(&self) -> Result<u8, KError>;
-    /// There is data ready to be read.
-    fn is_ready(&self) -> bool;
+}
+
+/// Generic device interface.
+pub trait Generic : Id {
+    /// Read `size` bytes into `buffer`. Must be big enough to allocate size bytes.
+    /// * Return: actual bytes read.
+    fn read(&self, size: usize, buffer: &mut u8) -> Result<usize, KError>;
+    /// Write `size` bytes from `buffer`. Must be big enough to contain size bytes.
+    /// * Return: actual bytes written.
+    fn write(&mut self, size: usize, buffer: &u8) -> Result<usize, KError>;
+    /// Send `command` with optional `data`.
+    /// * Return: command result.
+    fn cmd(&mut self, command: usize, data: Option<&u8>) -> Result<Option<&u8>, KError>;
 }
 
 /*
