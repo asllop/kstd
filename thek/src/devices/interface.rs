@@ -28,10 +28,17 @@ pub trait Id {
     fn id_code(&self) -> usize;
 }
 
+/// Device interrupts.
+pub trait Interrupt {
+    /// Set an interrupt handler.
+    /// * Return: could be set or not.
+    fn handler(&self, func: fn(device: DeviceType)) -> bool;
+}
+
 //TODO: define an interruption trait to handle interrupts
 
 /// Storage device interface.
-pub trait Storage : Id {
+pub trait Storage : Id + Interrupt {
     /// Seek to `position` in sectors.
     /// * Return: actual position after seek.
     fn seek(&mut self, position: usize) -> Result<usize, KError>;
@@ -64,31 +71,24 @@ pub enum CursorBlink {
 }
 
 /// Text mode screen device interface.
-pub trait TextScreen : Id {
-    /// Set character at X,Y position, not changing the color.
-    fn set_char(&mut self, x: usize, y: usize, ch: char) -> Result<(), KError>;
-
-    /// Set color at X,Y position, not changing the character.
-    fn set_color(&mut self, x: usize, y: usize, text_color: AnsiColor, bg_color: AnsiColor) -> Result<(), KError>;
-
+pub trait TextScreen : Id + Interrupt {
+    /// Put a character at X,Y position, not changing the color.
+    fn put_char(&mut self, x: usize, y: usize, ch: char) -> Result<(), KError>;
+    /// Put color at X,Y position, not changing the character.
+    fn put_color(&mut self, x: usize, y: usize, text_color: AnsiColor, bg_color: AnsiColor) -> Result<(), KError>;
     /// Print one char with color at X,Y position.
     fn write(&mut self, x: usize, y: usize, text_color: AnsiColor, bg_color: AnsiColor, ch: char) -> Result<(), KError> {
-        self.set_char(x, y, ch)?;
-        self.set_color(x, y, text_color, bg_color)
+        self.put_char(x, y, ch)?;
+        self.put_color(x, y, text_color, bg_color)
     }
-
     /// Read char and color at X,Y position, return char, text color and background color in this order.
     fn read(&self, x: usize, y: usize) -> Result<(char, AnsiColor, AnsiColor), KError>;
-
     /// Set cursor X,Y position.
     fn set_position(&mut self, x: usize, y: usize) -> Result<(), KError>;
-
     /// Get cursor X,Y position.
     fn get_position(&self) -> Result<(usize, usize), KError>;
-
     /// Config cursor options.
     fn config_cursor(&mut self, enabled: bool, shape: CursorShape, blink: CursorBlink) -> Result<(), KError>;
-
     /// Get screen size in Columns,Rows.
     fn size(&self) -> Result<(usize, usize), KError>;
 }
@@ -100,7 +100,7 @@ pub enum KeyChar {
 }
 
 /// Keyset device interface.
-pub trait Keyset : Id {
+pub trait Keyset : Id + Interrupt {
     /// There is a key ready to be read.
     fn is_ready(&self) -> bool;
     /// Read raw key code. Blocks if no key ready.
@@ -119,7 +119,7 @@ pub enum NetworkType {
 }
 
 /// Network device interface.
-pub trait Network : Id {
+pub trait Network : Id + Interrupt {
     /// Read `size` bytes into `buffer`. Must be big enough to allocate size bytes.
     /// * Return: actual bytes read.
     fn read(&self, size: usize, buffer: &mut u8) -> Result<usize, KError>;
@@ -156,7 +156,7 @@ pub enum PortType {
     Usb
 }
 
-pub trait Port : Id {
+pub trait Port : Id + Interrupt {
     /// Write data to port.
     fn write(&mut self, b: u8) -> Result<(), KError>;
     /// Read data from port. Blocks if not data ready.
@@ -191,7 +191,7 @@ pub trait Uart : Port {
 }
 
 /// Generic device interface.
-pub trait Generic : Id {
+pub trait Generic : Id + Interrupt {
     /// Read `size` bytes into `buffer`. Must be big enough to allocate size bytes.
     /// * Return: actual bytes read.
     fn read(&self, size: usize, buffer: &mut u8) -> Result<usize, KError>;
