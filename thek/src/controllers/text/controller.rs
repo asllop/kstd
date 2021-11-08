@@ -57,7 +57,15 @@ impl<'a, T: PlotTextDevice<'a>> OutputTextController<'a, T> {
 
     pub fn get_size(&self) -> (usize, usize) {
         (self.cols, self.rows)
-    } 
+    }
+
+    pub fn clear(&mut self) {
+        for y in 0..self.rows {
+            for x in 0..self.cols {
+                self.device_lock.print(x, y, self.text_color, self.bg_color, ' ' as u8).unwrap_or_default();
+            }
+        }
+    }
 
     fn inc_pos(&mut self) {
         self.x += 1;
