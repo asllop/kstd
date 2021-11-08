@@ -112,7 +112,8 @@ pub type DefaultConsoleController<'a> = OutputTextController<'a, ScreenTextDevic
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     //TODO: stop task scheduling, once we have multitasking
-    // Just in case we panicked while still holding a lock on ScreenTextDevice
+    
+    // Reset mutex, just in case we panicked while still holding a lock on ScreenTextDevice
     ScreenTextDevice::mutex().reset();
     let mut con = OutputTextController::<ScreenTextDevice>::new(
         AnsiColor::BrightWhite,

@@ -76,6 +76,7 @@ fn main() {
     print!("{}", tst.num);
 
     let mut con = DefaultConsoleController::new(AnsiColor::BrightWhite, AnsiColor::BrightBlue);
+    con.clear();
     con.set_xy(33, 0).unwrap_or_default();
     write!(&mut con, " <<< TheK >>>").unwrap_or_default();
     core::mem::drop(con);

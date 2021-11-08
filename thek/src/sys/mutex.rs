@@ -13,7 +13,7 @@ pub struct KMutex<T> {
     host: UnsafeCell<T>
 }
 
-unsafe impl<T: Sized + Send> Sync for KMutex<T> {}
+unsafe impl<T: Sized> Sync for KMutex<T> {}
 
 impl<T> KMutex<T> {
     /// Create new mutex.

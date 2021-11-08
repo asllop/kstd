@@ -1,8 +1,12 @@
 use crate::{
     sys::{
-        KMutex, KError
+        KMutex, KLock, KError
     },
     controllers::text::ansi::AnsiColor
+};
+
+use hashbrown::{
+    HashMap, hash_map::DefaultHashBuilder
 };
 
 // TODO: remove this, mutex will be implemented in the device instance handler
@@ -12,20 +16,113 @@ pub trait Device<'a> {
     fn mutex() -> &'a KMutex<Self> where Self: Sized;
 }
 
-/// Encapsulate all devie types.
+pub fn get_storage(id: &str) -> Option<DeviceType> {
+    if let Some(&device_type) = STORAGE_DEVICES.acquire().get(id) {
+        Some(device_type)
+    }
+    else {
+        None
+    }
+}
+
+pub fn remove_storage(id: &str) -> bool {
+    if let Some(_) = STORAGE_DEVICES.acquire().remove(id) {
+        true
+    }
+    else {
+        false
+    }
+}
+
+pub fn register_device(device_type: DeviceType) -> bool {
+    match device_type {
+        DeviceType::Storage(m) => {
+            STORAGE_DEVICES.acquire().insert(m.acquire().id(), device_type);
+            true
+        },
+        //TODO: implement register for the rest of device types
+        _ => false
+    }
+}
+
+type DeviceStore = KMutex<HashMap<&'static str, DeviceType>>;
+
+// We have to manually create a HashMap (with hardcoded seeds) because it doesn't provide a const constructor.
+
+static STORAGE_DEVICES : DeviceStore = KMutex::new(
+    HashMap::with_hasher(
+    DefaultHashBuilder::with_seeds(103428633845345, 4723874528374, 5318798732938, 3847737465837)
+    )
+);
+
+//TODO: interface to store devices:
+// - to obtain devices we want something like get_TYPE(ID): get_storage("HDA"), get_port("COM1"), etc.
+// - static hashmap per device type. The key is the ID and the value the DeviceType.
+// - when a device is get, it locks it automatically using KMutex.
+// - devices can be dynamically added and removed.
+
+/// Encapsulate all device types.
+#[derive(Clone, Copy)]
 pub enum DeviceType {
-    Storage(&'static dyn Storage),
-    TextScreen(&'static dyn TextScreen),
-    Keyset(&'static dyn Keyset),
-    Network(&'static dyn Network),
-    Port(&'static dyn Port),
-    Generic(&'static dyn Generic),
+    Storage(&'static KMutex<&'static dyn Storage>),
+    Text(&'static KMutex<&'static dyn Text>),
+    Keyset(&'static KMutex<&'static dyn Keyset>),
+    Network(&'static KMutex<&'static dyn Network>),
+    Port(&'static KMutex<&'static dyn Port>),
+    Generic(&'static KMutex<&'static dyn Generic>)
+}
+
+impl DeviceType {
+    pub fn unwrap_storage(&self) -> KLock<'_, &'static dyn Storage> {
+        if let DeviceType::Storage(m) = self {
+            m.acquire()
+        }
+        else {
+            panic!("Not a Storage device");
+        }
+    }
+    //TODO: unwrap the rest of device types
+}
+
+/*
+struct TestDev {}
+impl BuildDevice for TestDev {
+    fn build_device() -> DeviceType {
+        DeviceType::Generic(&_MUTEX)
+    }
+}
+impl Generic for TestDev {
+    fn read(&self, _: usize, _: &mut u8) -> Result<usize, KError> {
+        Err(KError::Other)
+    }
+
+    fn write(&mut self, _: usize, _: &u8) -> Result<usize, KError> {
+        Err(KError::Other)
+    }
+
+    fn cmd(&mut self, _: usize, _: Option<&u8>) -> Result<Option<&u8>, KError> {
+        Err(KError::Other)
+    }
+}
+impl Id for TestDev {
+    fn id(&self) -> &str { "TST0" }
+}
+impl Interrupt for TestDev {
+    fn handler(&self, _: fn(DeviceType)) -> bool { false }
+}
+static _DEVICE : TestDev = TestDev {};
+static _MUTEX : KMutex<&'static dyn Generic> = KMutex::new(&_DEVICE);
+*/
+
+/// Build a DeviceType enum.
+pub trait BuildDevice {
+    fn build_device() -> DeviceType;
 }
 
 /// Provides an identifier.
 pub trait Id {
+    // Device identifier (e.g., COM1, HDA, ETH0, etc).
     fn id(&self) -> &str;
-    fn id_code(&self) -> usize;
 }
 
 /// Device interrupts.
@@ -41,7 +138,7 @@ pub trait Interrupt {
 pub trait Storage : Id + Interrupt {
     /// Seek to `position` in sectors.
     /// * Return: actual position after seek.
-    fn seek(&mut self, position: usize) -> Result<usize, KError>;
+    fn seek(&self, position: usize) -> Result<usize, KError>;
     /// Get current position in sectors.
     fn position(&self) -> Result<usize, KError>;
     /// Sector size in bytes.
@@ -51,7 +148,7 @@ pub trait Storage : Id + Interrupt {
     fn read(&self, size: usize, buffer: &mut u8) -> Result<usize, KError>;
     /// Write `size` sectors from `buffer`. Must be big enough to contain size * sector_size bytes.
     /// * Return: actual bytes written.
-    fn write(&mut self, size: usize, buffer: &u8) -> Result<usize, KError>;
+    fn write(&self, size: usize, buffer: &u8) -> Result<usize, KError>;
 }
 
 /// Text screen cursor shape.
@@ -70,25 +167,25 @@ pub enum CursorBlink {
     Default
 }
 
-/// Text mode screen device interface.
-pub trait TextScreen : Id + Interrupt {
+/// Text device interface.
+pub trait Text : Id + Interrupt {
     /// Put a character at X,Y position, not changing the color.
-    fn put_char(&mut self, x: usize, y: usize, ch: char) -> Result<(), KError>;
+    fn put_char(&self, x: usize, y: usize, ch: char) -> Result<(), KError>;
     /// Put color at X,Y position, not changing the character.
-    fn put_color(&mut self, x: usize, y: usize, text_color: AnsiColor, bg_color: AnsiColor) -> Result<(), KError>;
+    fn put_color(&self, x: usize, y: usize, text_color: AnsiColor, bg_color: AnsiColor) -> Result<(), KError>;
     /// Print one char with color at X,Y position.
-    fn write(&mut self, x: usize, y: usize, text_color: AnsiColor, bg_color: AnsiColor, ch: char) -> Result<(), KError> {
+    fn write(&self, x: usize, y: usize, text_color: AnsiColor, bg_color: AnsiColor, ch: char) -> Result<(), KError> {
         self.put_char(x, y, ch)?;
         self.put_color(x, y, text_color, bg_color)
     }
     /// Read char and color at X,Y position, return char, text color and background color in this order.
     fn read(&self, x: usize, y: usize) -> Result<(char, AnsiColor, AnsiColor), KError>;
     /// Set cursor X,Y position.
-    fn set_position(&mut self, x: usize, y: usize) -> Result<(), KError>;
+    fn set_position(&self, x: usize, y: usize) -> Result<(), KError>;
     /// Get cursor X,Y position.
     fn get_position(&self) -> Result<(usize, usize), KError>;
     /// Config cursor options.
-    fn config_cursor(&mut self, enabled: bool, shape: CursorShape, blink: CursorBlink) -> Result<(), KError>;
+    fn config_cursor(&self, enabled: bool, shape: CursorShape, blink: CursorBlink) -> Result<(), KError>;
     /// Get screen size in Columns,Rows.
     fn size(&self) -> Result<(usize, usize), KError>;
 }
@@ -125,7 +222,7 @@ pub trait Network : Id + Interrupt {
     fn read(&self, size: usize, buffer: &mut u8) -> Result<usize, KError>;
     /// Write `size` bytes from `buffer`. Must be big enough to contain size bytes.
     /// * Return: actual bytes written.
-    fn write(&mut self, size: usize, buffer: &u8) -> Result<usize, KError>;
+    fn write(&self, size: usize, buffer: &u8) -> Result<usize, KError>;
     /// Network type.
     fn net_type(&self) -> NetworkType;
     /// As Ethernet.
@@ -158,7 +255,7 @@ pub enum PortType {
 
 pub trait Port : Id + Interrupt {
     /// Write data to port.
-    fn write(&mut self, b: u8) -> Result<(), KError>;
+    fn write(&self, b: u8) -> Result<(), KError>;
     /// Read data from port. Blocks if not data ready.
     fn read(&self) -> Result<u8, KError>;
     /// There is data ready to be read.
@@ -183,7 +280,7 @@ pub enum UartParity {
 /// UART port device interface.
 pub trait Uart : Port {
     /// Configure the port.
-    fn config(&mut self,
+    fn config(&self,
         parity: UartParity,
         data_bits: u8,
         stop_bits: u8,
@@ -197,10 +294,10 @@ pub trait Generic : Id + Interrupt {
     fn read(&self, size: usize, buffer: &mut u8) -> Result<usize, KError>;
     /// Write `size` bytes from `buffer`. Must be big enough to contain size bytes.
     /// * Return: actual bytes written.
-    fn write(&mut self, size: usize, buffer: &u8) -> Result<usize, KError>;
+    fn write(&self, size: usize, buffer: &u8) -> Result<usize, KError>;
     /// Send `command` with optional `data`.
     /// * Return: command result.
-    fn cmd(&mut self, command: usize, data: Option<&u8>) -> Result<Option<&u8>, KError>;
+    fn cmd(&self, command: usize, data: Option<&u8>) -> Result<Option<&u8>, KError>;
 }
 
 /*
