@@ -30,10 +30,12 @@ use std::{
     mem::size_of
 };
 
+use thek::devices::get_device_store;
+
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
     _small_allocs_mem();
-    thek::devices::port::uart::arch::register_devices(&thek::devices::DEVICE_STORE);
+    thek::devices::port::uart::arch::register_devices(get_device_store());
     main();
     loop {}
 }
@@ -153,7 +155,7 @@ fn main() {
     }
     write!(&mut port, "\n\x1b[10CHOLA\n").unwrap_or_default();
 
-    let device = thek::devices::DEVICE_STORE.acquire().get_port("COM1").unwrap();
+    let device = get_device_store().acquire().get_port("COM1").unwrap();
     let port = device.unwrap_port();
     port.write('A' as u8).unwrap_or_default();
     port.write('d' as u8).unwrap_or_default();

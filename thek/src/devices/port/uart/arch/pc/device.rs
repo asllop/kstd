@@ -9,7 +9,10 @@ use crate::sys::{
 };
 
 use crate::devices::{
-    Id, Interrupt, Port, PortType, Uart, UartParity, UartSpeed, DeviceType, DeviceStore
+    port::{
+        Port, PortType, Uart, UartParity, UartSpeed, Spi, I2c, OneWire, Usb
+    },
+    Id, Interrupt, DeviceType, DeviceStore
 };
 
 //TODO: add macro mark
@@ -52,10 +55,10 @@ impl Port for PcComDevice {
         Some(self as &dyn Uart)
     }
 
-    fn as_spi(&self) -> Option<&dyn crate::devices::Spi> { None }
-    fn as_i2c(&self) -> Option<&dyn crate::devices::I2c> { None }
-    fn as_1wire(&self) -> Option<&dyn crate::devices::OneWire> { None }
-    fn as_usb(&self) -> Option<&dyn crate::devices::Usb> { None }
+    fn as_spi(&self) -> Option<&dyn Spi> { None }
+    fn as_i2c(&self) -> Option<&dyn I2c> { None }
+    fn as_1wire(&self) -> Option<&dyn OneWire> { None }
+    fn as_usb(&self) -> Option<&dyn Usb> { None }
 }
 
 impl Uart for PcComDevice {
