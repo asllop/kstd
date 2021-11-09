@@ -33,6 +33,7 @@ use std::{
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
     _small_allocs_mem();
+    thek::devices::port::uart::arch::register_devices(&thek::devices::DEVICE_STORE);
     main();
     loop {}
 }
@@ -143,6 +144,7 @@ fn main() {
 
     // Print a backspace to remove the 'A'
     print!("\nHOLA\x08");
+    println!();
 
     let mut port = UartDevice::mutex().acquire();
     port.config(0, UartParity::None, 8, 1, UartSpeed::Baud9600);
@@ -150,6 +152,26 @@ fn main() {
         write!(&mut port, "Loop {}\n", i).unwrap_or_default();
     }
     write!(&mut port, "\n\x1b[10CHOLA\n").unwrap_or_default();
+
+    let device = thek::devices::DEVICE_STORE.acquire().get_port("COM1").unwrap();
+    let port = device.unwrap_port();
+    port.write('A' as u8).unwrap_or_default();
+    port.write('d' as u8).unwrap_or_default();
+    port.write('e' as u8).unwrap_or_default();
+    port.write('u' as u8).unwrap_or_default();
+    port.write('!' as u8).unwrap_or_default();
+    port.write('\n' as u8).unwrap_or_default();
+
+    let mut vec = Vec::<u8>::new();
+    loop {
+        let ch = port.read().unwrap_or_default();
+        if ch == '\n' as u8 || ch == 0x0Du8 {
+            break;
+        }
+        vec.push(ch);
+    }
+    let input = String::from_utf8(vec).unwrap();
+    println!("Input = {}", input);
 
     //_fail_unwrap();
     //_fail_oom_big_allocs();

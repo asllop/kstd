@@ -170,36 +170,52 @@ impl DeviceType {
             panic!("Not a Storage device");
         }
     }
-    //TODO: unwrap the rest of device types
-}
-
-/*
-pub fn register_devices(device_store: &KMutex<DeviceStore>) {
-    device_store.acquire().register_device(DeviceType::Generic(&_MUTEX));
-}
-pub struct TestDev;
-impl Generic for TestDev {
-    fn read(&self, _: usize, _: &mut u8) -> Result<usize, KError> {
-        Err(KError::Other)
+    
+    pub fn unwrap_text(&self) -> KLock<'_, &'static dyn Text> {
+        if let DeviceType::Text(m) = self {
+            m.acquire()
+        }
+        else {
+            panic!("Not a Text device");
+        }
     }
 
-    fn write(&self, _: usize, _: &u8) -> Result<usize, KError> {
-        Err(KError::Other)
+    pub fn unwrap_keyset(&self) -> KLock<'_, &'static dyn Keyset> {
+        if let DeviceType::Keyset(m) = self {
+            m.acquire()
+        }
+        else {
+            panic!("Not a Keyset device");
+        }
     }
 
-    fn cmd(&self, _: usize, _: Option<&u8>) -> Result<Option<&u8>, KError> {
-        Err(KError::Other)
+    pub fn unwrap_network(&self) -> KLock<'_, &'static dyn Network> {
+        if let DeviceType::Network(m) = self {
+            m.acquire()
+        }
+        else {
+            panic!("Not a Network device");
+        }
+    }
+
+    pub fn unwrap_port(&self) -> KLock<'_, &'static dyn Port> {
+        if let DeviceType::Port(m) = self {
+            m.acquire()
+        }
+        else {
+            panic!("Not a Port device");
+        }
+    }
+
+    pub fn unwrap_generic(&self) -> KLock<'_, &'static dyn Generic> {
+        if let DeviceType::Generic(m) = self {
+            m.acquire()
+        }
+        else {
+            panic!("Not a Generic device");
+        }
     }
 }
-impl Id for TestDev {
-    fn id(&self) -> &str { "TST0" }
-}
-impl Interrupt for TestDev {
-    fn handler(&self, _: fn(DeviceType)) -> bool { false }
-}
-static _DEVICE : TestDev = TestDev;
-static _MUTEX : KMutex<&'static dyn Generic> = KMutex::new(&_DEVICE);
-*/
 
 /// Provides an identifier.
 pub trait Id {
@@ -345,7 +361,14 @@ pub trait Port : Id + Interrupt {
     fn port_type(&self) -> PortType;
     /// As UART.
     fn as_uart(&self) -> Option<&dyn Uart>;
-    //TODO: other port conversions
+    // As SPI
+    fn as_spi(&self) -> Option<&dyn Spi>;
+    // As I2C
+    fn as_i2c(&self) -> Option<&dyn I2c>;
+    // As 1-Wire
+    fn as_1wire(&self) -> Option<&dyn OneWire>;
+    // As USB
+    fn as_usb(&self) -> Option<&dyn Usb>;
 }
 
 /// UART speed enum.
@@ -367,6 +390,12 @@ pub trait Uart : Port {
         stop_bits: u8,
         speed: UartSpeed) -> Result<(), KError>;
 }
+
+//TODO: implement port traits
+pub trait Spi : Port {}
+pub trait I2c : Port {}
+pub trait OneWire : Port {}
+pub trait Usb : Port {}
 
 /// Generic device interface.
 pub trait Generic : Id + Interrupt {
