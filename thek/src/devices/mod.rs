@@ -2,7 +2,6 @@
 
 //TODO: remove
 pub mod plot;
-pub mod com;
 
 pub mod text;
 

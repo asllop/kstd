@@ -11,3 +11,15 @@
 //! - Virtual devices like frame buffer
 
 pub mod text;
+
+/*
+// TODO: create a controller with a Writer for Port devices
+impl Write for UartDevice {
+    fn write_str(&mut self, s: &str) -> Result<(), Error> {
+        for ch in s.as_bytes() {
+            self.send(*ch);
+        }
+        Ok(())
+    }
+}
+*/

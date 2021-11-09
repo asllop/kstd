@@ -14,10 +14,7 @@ use thek::{
         KMutex
     },
     devices::{
-        Device,
-        com::port::uart::{
-            UartDevice, UartParity, UartSpeed
-        }
+        get_device_store
     }
 };
 
@@ -29,8 +26,6 @@ use std::{
     },
     mem::size_of
 };
-
-use thek::devices::get_device_store;
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
@@ -147,13 +142,6 @@ fn main() {
     // Print a backspace to remove the 'A'
     print!("\nHOLA\x08");
     println!();
-
-    let mut port = UartDevice::mutex().acquire();
-    port.config(0, UartParity::None, 8, 1, UartSpeed::Baud9600);
-    for i in 0..10 {
-        write!(&mut port, "Loop {}\n", i).unwrap_or_default();
-    }
-    write!(&mut port, "\n\x1b[10CHOLA\n").unwrap_or_default();
 
     let device = get_device_store().acquire().get_port("COM1").unwrap();
     let port = device.unwrap_port();
