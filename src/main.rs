@@ -3,7 +3,6 @@
 
 use thek::{
     DefaultConsoleController,
-    controllers::text::ansi::AnsiColor,
     mem::{
         arch::raw_mem,
         layout::{
@@ -15,7 +14,8 @@ use thek::{
     },
     devices::{
         get_device_store
-    }
+    },
+    devices::text::ansi::AnsiColor
 };
 
 use core::default::Default;
@@ -31,6 +31,7 @@ use std::{
 pub extern "C" fn _start() -> ! {
     _small_allocs_mem();
     thek::devices::port::uart::arch::register_devices(get_device_store());
+    thek::devices::text::arch::register_devices(get_device_store());
     main();
     loop {}
 }

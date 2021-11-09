@@ -1,9 +1,10 @@
 use crate::{
-    controllers::text::ansi::AnsiColor,
     sys::KError
 };
 
-use super::super::super::Device;
+use crate::devices::text::ansi::AnsiColor;
+
+use crate::devices::Device;
 
 /// Plot text device interface trait. All plot text devices must implement it.
 pub trait PlotTextDevice<'a> : Device<'a> {

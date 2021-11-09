@@ -90,13 +90,15 @@ pub mod sys;
 pub mod mem;
 
 use controllers::text::{
-    ansi::AnsiColor,
     OutputTextController
 };
 
 use devices::{
     Device,
-    plot::text::ScreenTextDevice
+    text::ansi::AnsiColor,
+    plot::text::{
+        ScreenTextDevice,
+    }
 };
 
 use core::{

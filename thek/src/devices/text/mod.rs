@@ -5,9 +5,13 @@ use super::{
 };
 
 use crate::{
-    controllers::text::ansi::AnsiColor,
     sys::KError
 };
+
+use ansi::AnsiColor;
+
+pub mod arch;
+pub mod ansi;
 
 /// Text screen cursor shape.
 pub enum CursorShape {

@@ -1,20 +1,30 @@
-//! PC computers console device.
+//! PC VGA text device.
 
-use core::{
-    convert::From
-};
-
-use crate::devices::text::ansi::AnsiColor;
-
-use crate::{
-    devices::plot::text::{
-        ScreenTextDevice, PlotTextDevice
+use crate::devices::{
+    text::{
+        Text, CursorShape, CursorBlink,
+        ansi::{
+            AnsiColor, IntoAscii
+        }
     },
-    sys::KError,
-    arch::{
-        inb, outb
-    }
+    Id, Interrupt, DeviceType, DeviceStore
 };
+
+use crate::arch::{
+    inb, outb
+};
+
+use crate::sys::{
+    KMutex, KError
+};
+
+//TODO: add macro mark
+pub fn register_devices(device_store: &KMutex<DeviceStore>) {
+    device_store.acquire().register_device(DeviceType::Text(&VGA_TEXT_DEVICE_1_MUTEX));
+}
+
+static VGA_TEXT_DEVICE_1 : VgaTextDevice = VgaTextDevice::new();
+static VGA_TEXT_DEVICE_1_MUTEX : KMutex<&'static dyn Text> = KMutex::new(&VGA_TEXT_DEVICE_1);
 
 /// Vga console colors
 #[derive(Copy, Clone)]
@@ -121,12 +131,22 @@ impl From<u8> for VgaConsoleColor {
 const CONSOLE_COLS : usize = 80;
 const CONSOLE_ROWS : usize = 25;
 
-impl PlotTextDevice<'_> for ScreenTextDevice {
-    fn print(&self, x: usize, y: usize, text_color: AnsiColor, bg_color: AnsiColor, ch: u8) -> Result<(), KError> {
+/// VGA text mode device.
+pub struct VgaTextDevice {
+}
+
+impl VgaTextDevice {
+    const fn new() -> Self {
+        Self {}
+    }
+}
+
+impl Text for VgaTextDevice {
+    fn write(&self, x: usize, y: usize, text_color: AnsiColor, bg_color: AnsiColor, ch: char) -> Result<(), KError> {
         if x < CONSOLE_COLS && y < CONSOLE_ROWS {
             let pos = CONSOLE_COLS * y + x;
             unsafe {
-                *((0xB8000 + pos * 2) as *mut u8) = ch;
+                *((0xB8000 + pos * 2) as *mut u8) = ch.into_ascii()?;
                 let color = ((VgaConsoleColor::from(bg_color) as u8) << 4) | (VgaConsoleColor::from(text_color) as u8);
                 *((0xB8000 + pos * 2 + 1) as *mut u8) = color;
             }
@@ -137,11 +157,11 @@ impl PlotTextDevice<'_> for ScreenTextDevice {
         }
     }
 
-    fn set_char(&self, x: usize, y: usize, ch: u8) -> Result<(), KError> {
+    fn put_char(&self, x: usize, y: usize, ch: char) -> Result<(), KError> {
         if x < CONSOLE_COLS && y < CONSOLE_ROWS {
             let pos = CONSOLE_COLS * y + x;
             unsafe {
-                *((0xB8000 + pos * 2) as *mut u8) = ch;
+                *((0xB8000 + pos * 2) as *mut u8) = ch.into_ascii()?;
             }
             Ok(())
         }
@@ -150,7 +170,7 @@ impl PlotTextDevice<'_> for ScreenTextDevice {
         }
     }
 
-    fn set_color(&self, x: usize, y: usize, text_color: AnsiColor, bg_color: AnsiColor) -> Result<(), KError> {
+    fn put_color(&self, x: usize, y: usize, text_color: AnsiColor, bg_color: AnsiColor) -> Result<(), KError> {
         if x < CONSOLE_COLS && y < CONSOLE_ROWS {
             let pos = CONSOLE_COLS * y + x;
             unsafe {
@@ -164,7 +184,7 @@ impl PlotTextDevice<'_> for ScreenTextDevice {
         }
     }
 
-    fn read(&self, x: usize, y: usize) -> Result<(u8, AnsiColor, AnsiColor), KError> {
+    fn read(&self, x: usize, y: usize) -> Result<(char, AnsiColor, AnsiColor), KError> {
         if x < CONSOLE_COLS && y < CONSOLE_ROWS {
             let pos = CONSOLE_COLS * y + x;
             let ch = unsafe {
@@ -179,7 +199,7 @@ impl PlotTextDevice<'_> for ScreenTextDevice {
             
             Ok(
                 (
-                    ch,
+                    ch as char,
                     AnsiColor::from(text_color),
                     AnsiColor::from(bg_color)
                 )
@@ -190,7 +210,7 @@ impl PlotTextDevice<'_> for ScreenTextDevice {
         }
     }
 
-    fn set_cursor(&self, x: usize, y: usize) -> Result<(), KError> {
+    fn set_position(&self, x: usize, y: usize) -> Result<(), KError> {
         if x < CONSOLE_COLS && y < CONSOLE_ROWS {
             let pos: u16 = (80 * y + x) as u16;
             outb(0x3D4, 0x0F);
@@ -204,7 +224,7 @@ impl PlotTextDevice<'_> for ScreenTextDevice {
         }
     }
 
-    fn get_cursor(&self) -> Result<(usize, usize), KError> {
+    fn get_position(&self) -> Result<(usize, usize), KError> {
         let mut pos : u16 = 0;
         outb(0x3D4, 0x0F);
         pos |= inb(0x3D5) as u16;
@@ -215,23 +235,46 @@ impl PlotTextDevice<'_> for ScreenTextDevice {
         Ok((x, y))
     }
 
-    fn enable_cursor(&self) -> Result<(), KError> {
-        let cursor_start = 14u8;
-        let cursor_end = 15u8;
-        outb(0x3D4, 0x0A);
-        outb(0x3D5, (inb(0x3D5) & 0xC0) | cursor_start);
-        outb(0x3D4, 0x0B);
-        outb(0x3D5, (inb(0x3D5) & 0xE0) | cursor_end);
+    fn config_cursor(&self, enabled: bool, shape: CursorShape, _blink: CursorBlink) -> Result<(), KError> {
+        if enabled {
+            let (cursor_start, cursor_end) = match shape {
+                CursorShape::Default => {
+                    (14, 15)
+                },
+                CursorShape::FullBlock => {
+                    (0, 15)
+                },
+                CursorShape::HalfBlock => {
+                    (7, 15)
+                },
+                CursorShape::UnderLine => {
+                    (14, 15)
+                }
+            };
+            outb(0x3D4, 0x0A);
+            outb(0x3D5, (inb(0x3D5) & 0xC0) | cursor_start);
+            outb(0x3D4, 0x0B);
+            outb(0x3D5, (inb(0x3D5) & 0xE0) | cursor_end);
+        }
+        else {
+            outb(0x3D4, 0x0A);
+            outb(0x3D5, 0x20);
+        }
+
         Ok(())
     }
 
-    fn disable_cursor(&self) -> Result<(), KError> {
-        outb(0x3D4, 0x0A);
-        outb(0x3D5, 0x20);
-        Ok(())
-    }
-
-    fn get_size(&self) -> Result<(usize, usize), KError> {
+    fn size(&self) -> Result<(usize, usize), KError> {
         Ok((CONSOLE_COLS, CONSOLE_ROWS))
     }
+}
+
+impl Id for VgaTextDevice {
+    fn id(&self) -> &str {
+        "TXT0"
+    }
+}
+
+impl Interrupt for VgaTextDevice {
+    fn handler(&self, _: fn(DeviceType)) -> bool { false }
 }

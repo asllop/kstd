@@ -1,5 +1,7 @@
 //! Character utils and ANSI related module.
 
+use crate::sys::KError;
+
 /// Define an ANSI color
 /// 
 /// More info about ANSI colors: <https://en.wikipedia.org/wiki/ANSI_escape_code#Colors>
@@ -28,21 +30,22 @@ pub enum AnsiColor {
 }
 
 /// Convert into ASCII character.
-trait IntoAscii {
+pub trait IntoAscii {
     type Error;
     fn into_ascii(&self) -> Result<u8, Self::Error>;
 }
 
 /// Convert char into ASCII character.
 impl IntoAscii for char {
-    type Error = &'static str;
+    type Error = KError;
     fn into_ascii(&self) -> Result<u8, Self::Error> {
         let b = (*self as u32 & 0x7F) as u8;
         if b as char == *self {
             Ok(b)
         }
         else {
-            Err("Not an ASCII character")
+            //TODO: create error
+            Err(KError::Other)
         }
     }
 }

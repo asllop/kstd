@@ -6,8 +6,9 @@ use core::{
     default::Default
 };
 
+use crate::devices::text::ansi::AnsiColor;
+
 use crate::{
-    controllers::text::ansi::AnsiColor,
     devices::plot::text::PlotTextDevice
 };
 
