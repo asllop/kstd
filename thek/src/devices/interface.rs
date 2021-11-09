@@ -16,50 +16,139 @@ pub trait Device<'a> {
     fn mutex() -> &'a KMutex<Self> where Self: Sized;
 }
 
-pub fn get_storage(id: &str) -> Option<DeviceType> {
-    if let Some(&device_type) = STORAGE_DEVICES.acquire().get(id) {
-        Some(device_type)
+/// Device store.
+pub struct DeviceStore {
+    storage: HashMap<&'static str, DeviceType>,
+    text: HashMap<&'static str, DeviceType>,
+    keyset: HashMap<&'static str, DeviceType>,
+    network: HashMap<&'static str, DeviceType>,
+    port: HashMap<&'static str, DeviceType>
+}
+
+impl DeviceStore {
+    // We have to manually create a HashMap (with hardcoded seeds) because it doesn't provide a const constructor.
+    const fn new() -> Self {
+        Self {
+            storage: HashMap::with_hasher(
+                DefaultHashBuilder::with_seeds(
+                103428633845345,
+                4723874528374,
+                5318798732938,
+                3847737465837
+                )
+            ),
+            text: HashMap::with_hasher(
+                DefaultHashBuilder::with_seeds(
+                103428633845345,
+                4723874528374,
+                5318798732938,
+                3847737465837
+                )
+            ),
+            keyset: HashMap::with_hasher(
+                DefaultHashBuilder::with_seeds(
+                103428633845345,
+                4723874528374,
+                5318798732938,
+                3847737465837
+                )
+            ),
+            network: HashMap::with_hasher(
+                DefaultHashBuilder::with_seeds(
+                103428633845345,
+                4723874528374,
+                5318798732938,
+                3847737465837
+                )
+            ),
+            port: HashMap::with_hasher(
+                DefaultHashBuilder::with_seeds(
+                103428633845345,
+                4723874528374,
+                5318798732938,
+                3847737465837
+                )
+            )
+        }
     }
-    else {
-        None
+
+    fn get(&self, store: &HashMap<&'static str, DeviceType>, id: &str) -> Option<DeviceType> {
+        if let Some(&device_type) = store.get(id) {
+            Some(device_type)
+        }
+        else {
+            None
+        }
+    }
+
+    pub fn get_storage(&self, id: &str) -> Option<DeviceType> {
+        self.get(&self.storage, id)
+    }
+    
+    pub fn remove_storage(&mut self, id: &str) -> bool {
+        self.storage.remove(id).is_some()
+    }
+
+    pub fn get_text(&self, id: &str) -> Option<DeviceType> {
+        self.get(&self.text, id)
+    }
+    
+    pub fn remove_text(&mut self, id: &str) -> bool {
+        self.text.remove(id).is_some()
+    }
+
+    pub fn get_keyset(&self, id: &str) -> Option<DeviceType> {
+        self.get(&self.keyset, id)
+    }
+    
+    pub fn remove_keyset(&mut self, id: &str) -> bool {
+        self.keyset.remove(id).is_some()
+    }
+
+    pub fn get_network(&self, id: &str) -> Option<DeviceType> {
+        self.get(&self.network, id)
+    }
+    
+    pub fn remove_network(&mut self, id: &str) -> bool {
+        self.network.remove(id).is_some()
+    }
+
+    pub fn get_port(&self, id: &str) -> Option<DeviceType> {
+        self.get(&self.port, id)
+    }
+    
+    pub fn remove_port(&mut self, id: &str) -> bool {
+        self.port.remove(id).is_some()
+    }
+    
+    pub fn register_device(&mut self, device_type: DeviceType) -> bool {
+        match device_type {
+            DeviceType::Storage(m) => {
+                self.storage.insert(m.acquire().id(), device_type);
+                true
+            },
+            DeviceType::Text(m) => {
+                self.text.insert(m.acquire().id(), device_type);
+                true
+            },
+            DeviceType::Keyset(m) => {
+                self.keyset.insert(m.acquire().id(), device_type);
+                true
+            },
+            DeviceType::Network(m) => {
+                self.network.insert(m.acquire().id(), device_type);
+                true
+            },
+            DeviceType::Port(m) => {
+                self.port.insert(m.acquire().id(), device_type);
+                true
+            },
+            _ => false
+        }
     }
 }
 
-pub fn remove_storage(id: &str) -> bool {
-    if let Some(_) = STORAGE_DEVICES.acquire().remove(id) {
-        true
-    }
-    else {
-        false
-    }
-}
-
-pub fn register_device(device_type: DeviceType) -> bool {
-    match device_type {
-        DeviceType::Storage(m) => {
-            STORAGE_DEVICES.acquire().insert(m.acquire().id(), device_type);
-            true
-        },
-        //TODO: implement register for the rest of device types
-        _ => false
-    }
-}
-
-type DeviceStore = KMutex<HashMap<&'static str, DeviceType>>;
-
-// We have to manually create a HashMap (with hardcoded seeds) because it doesn't provide a const constructor.
-
-static STORAGE_DEVICES : DeviceStore = KMutex::new(
-    HashMap::with_hasher(
-    DefaultHashBuilder::with_seeds(103428633845345, 4723874528374, 5318798732938, 3847737465837)
-    )
-);
-
-//TODO: interface to store devices:
-// - to obtain devices we want something like get_TYPE(ID): get_storage("HDA"), get_port("COM1"), etc.
-// - static hashmap per device type. The key is the ID and the value the DeviceType.
-// - when a device is get, it locks it automatically using KMutex.
-// - devices can be dynamically added and removed.
+pub static DEVICE_STORE : KMutex<DeviceStore> = KMutex::new(DeviceStore::new());
 
 /// Encapsulate all device types.
 #[derive(Clone, Copy)]
@@ -85,22 +174,20 @@ impl DeviceType {
 }
 
 /*
-struct TestDev {}
-impl BuildDevice for TestDev {
-    fn build_device() -> DeviceType {
-        DeviceType::Generic(&_MUTEX)
-    }
+pub fn register_devices(device_store: &KMutex<DeviceStore>) {
+    device_store.acquire().register_device(DeviceType::Generic(&_MUTEX));
 }
+pub struct TestDev;
 impl Generic for TestDev {
     fn read(&self, _: usize, _: &mut u8) -> Result<usize, KError> {
         Err(KError::Other)
     }
 
-    fn write(&mut self, _: usize, _: &u8) -> Result<usize, KError> {
+    fn write(&self, _: usize, _: &u8) -> Result<usize, KError> {
         Err(KError::Other)
     }
 
-    fn cmd(&mut self, _: usize, _: Option<&u8>) -> Result<Option<&u8>, KError> {
+    fn cmd(&self, _: usize, _: Option<&u8>) -> Result<Option<&u8>, KError> {
         Err(KError::Other)
     }
 }
@@ -110,18 +197,14 @@ impl Id for TestDev {
 impl Interrupt for TestDev {
     fn handler(&self, _: fn(DeviceType)) -> bool { false }
 }
-static _DEVICE : TestDev = TestDev {};
+static _DEVICE : TestDev = TestDev;
 static _MUTEX : KMutex<&'static dyn Generic> = KMutex::new(&_DEVICE);
 */
 
-/// Build a DeviceType enum.
-pub trait BuildDevice {
-    fn build_device() -> DeviceType;
-}
-
 /// Provides an identifier.
 pub trait Id {
-    // Device identifier (e.g., COM1, HDA, ETH0, etc).
+    // Device identifier.
+    // By convention, 3 capital letters followed by a number (e.g., COM1, HDD12, ETH0).
     fn id(&self) -> &str;
 }
 
@@ -131,8 +214,6 @@ pub trait Interrupt {
     /// * Return: could be set or not.
     fn handler(&self, func: fn(device: DeviceType)) -> bool;
 }
-
-//TODO: define an interruption trait to handle interrupts
 
 /// Storage device interface.
 pub trait Storage : Id + Interrupt {
@@ -301,38 +382,8 @@ pub trait Generic : Id + Interrupt {
 }
 
 /*
-Device System Requierements:
-
-- Register multiple device types and multiple instances of the same type.
-- Get any device using a path device_type->device_id. For example: storage->hd0, port->uart->com2
-- We lock by getting a device ref, and unlock by droping it.
-- Automatic registering on startup using macros.
-
-How do we do it?
-
-- Define the device types:
-  - Storage (SATA disk, sdcard, USB pendrive, etc)
-  - Network
-  - TextScreen
-  - GfxScreen
+Other device types we could define:
+  - Gfx (2D and 3D)
   - Printer
-  - Keyset (keyboard, remote controller, etc)
-  - Tracker (mouse, touchpad, etc)
-  - Port:
-      - UART
-      - SPI
-      - I2C
-      - 1-Wire
-      - USB
-  - Generic: accepts reading and writing byte streams and sending commands as byte streams and reading state as byte streams.
-
-  And then create a trait for each type and an enum to encapsulate them.
-  The actual devices will continue living in static variables to avoid allocating mem for them. In the device struct we will have referenes to them.
-
-- Questions:
-  - How do we resolve the stdio problem?
-       There must be controller types, not device types:
-         - TextOutput
-         - TextInput
-       We use these controllers to hide the underlying device complexity.
+  - Tracker (mouse, touchpad, touch screen, etc)
 */
