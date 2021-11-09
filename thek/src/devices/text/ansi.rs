@@ -1,4 +1,4 @@
-//! Character utils and ANSI related module.
+//! Character and ANSI utils.
 
 use crate::sys::KError;
 
@@ -35,6 +35,12 @@ pub trait IntoAscii {
     fn into_ascii(&self) -> Result<u8, Self::Error>;
 }
 
+/// Convert into character.
+pub trait IntoChar {
+    type Error;
+    fn into_char(&self) -> Result<char, Self::Error>;
+}
+
 /// Convert char into ASCII character.
 impl IntoAscii for char {
     type Error = KError;
@@ -47,5 +53,13 @@ impl IntoAscii for char {
             //TODO: create error
             Err(KError::Other)
         }
+    }
+}
+
+/// Convert u8 ASCII into character.
+impl IntoChar for u8 {
+    type Error = KError;
+    fn into_char(&self) -> Result<char, Self::Error> {
+        Ok((*self & 0x7F) as char)
     }
 }

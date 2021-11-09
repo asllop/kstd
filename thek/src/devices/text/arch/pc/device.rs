@@ -4,7 +4,7 @@ use crate::devices::{
     text::{
         Text, CursorShape, CursorBlink,
         ansi::{
-            AnsiColor, IntoAscii
+            AnsiColor, IntoAscii, IntoChar
         }
     },
     Id, Interrupt, DeviceType, DeviceStore
@@ -199,7 +199,7 @@ impl Text for VgaTextDevice {
             
             Ok(
                 (
-                    ch as char,
+                    ch.into_char()?,
                     AnsiColor::from(text_color),
                     AnsiColor::from(bg_color)
                 )
