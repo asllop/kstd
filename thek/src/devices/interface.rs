@@ -161,10 +161,45 @@ impl DeviceStore {
     }
 }
 
-/// Acquire the device store.
-pub fn get_device_store<'a>() -> &'a DeviceStore {
+/// Get a Storage device by ID.
+pub fn get_storage_device(id: &str) -> Option<DeviceType> {
     unsafe {
-        &DEVICE_STORE
+        DEVICE_STORE.get_storage(id)
+    }
+}
+
+/// Get a Text device by ID.
+pub fn get_text_device(id: &str) -> Option<DeviceType> {
+    unsafe {
+        DEVICE_STORE.get_text(id)
+    }
+}
+
+/// Get a Keyset device by ID.
+pub fn get_keyset_device(id: &str) -> Option<DeviceType> {
+    unsafe {
+        DEVICE_STORE.get_keyset(id)
+    }
+}
+
+/// Get a Network device by ID.
+pub fn get_network_device(id: &str) -> Option<DeviceType> {
+    unsafe {
+        DEVICE_STORE.get_network(id)
+    }
+}
+
+/// Get a Port device by ID.
+pub fn get_port_device(id: &str) -> Option<DeviceType> {
+    unsafe {
+        DEVICE_STORE.get_port(id)
+    }
+}
+
+/// Get a Generic device by ID.
+pub fn get_generic_device(id: &str) -> Option<DeviceType> {
+    unsafe {
+        DEVICE_STORE.get_generic(id)
     }
 }
 

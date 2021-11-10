@@ -97,7 +97,7 @@ use controllers::text::{
 };
 
 use devices::{
-    get_device_store, DeviceType,
+    DeviceType,
     text::{
         ansi::AnsiColor
     }
@@ -117,7 +117,7 @@ pub type DefaultConsoleController = TextController;
 fn panic(info: &PanicInfo) -> ! {
     //TODO: stop task scheduling, once we have multitasking
     let dev_id = "TXT1";
-    if let Some(device) = get_device_store().get_text(dev_id) {
+    if let Some(device) = devices::get_text_device(dev_id) {
         if let DeviceType::Text(txt_dev) = device {
             // Reset mutex, just in case we panicked while still holding a lock.
             txt_dev.reset();

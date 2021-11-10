@@ -13,7 +13,7 @@ use thek::{
         KMutex
     },
     devices::{
-        get_device_store
+        self
     },
     devices::text::ansi::AnsiColor
 };
@@ -146,7 +146,7 @@ fn main() {
     print!("\nHOLA\x08");
     println!();
 
-    let device = get_device_store().get_port("COM1").expect("Port COM1 not found");
+    let device = devices::get_port_device("COM1").expect("Port COM1 not found");
     let port = device.unwrap_port();
     port.write('A' as u8).unwrap_or_default();
     port.write('d' as u8).unwrap_or_default();
