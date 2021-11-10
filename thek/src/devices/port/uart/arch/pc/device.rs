@@ -100,11 +100,11 @@ impl Uart for PcComDevice {
 impl Id for PcComDevice {
     fn id(&self) -> &str {
         match self.port_number {
-            0 => "COM1",
-            1 => "COM2",
-            2 => "COM3",
-            3 => "COM4",
-            _ => "COM1"
+            0 => "SER1",
+            1 => "SER2",
+            2 => "SER3",
+            3 => "SER4",
+            _ => "SER1"
         }
     }
 }

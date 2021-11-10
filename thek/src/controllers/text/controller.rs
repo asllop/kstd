@@ -138,8 +138,8 @@ impl TextController {
 
 impl Default for TextController {
     fn default() -> Self {
-        Self::new(AnsiColor::White, AnsiColor::Black, "TXT1".to_owned())
-            .expect("Device TXT1 not found")
+        Self::new(AnsiColor::White, AnsiColor::Black, "CON1".to_owned())
+            .expect("Device CON1 not found")
     }
 }
 

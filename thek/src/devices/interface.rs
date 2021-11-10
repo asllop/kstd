@@ -327,8 +327,15 @@ impl Device {
 
 /// Provides an identifier.
 pub trait Id {
-    // Device identifier.
-    // By convention, 3 capital letters followed by a number (e.g., COM1, HDD12, ETH0).
+    /// Device identifier.
+    /// By convention, 3 capital letters followed by a 1-based index.
+    ///
+    /// Commonly used device IDs:
+    /// - `SER` for UART ports (e.g., SER1)
+    /// - `HDD` for hard disks (e.g., HDD1 is the primary hard disk)
+    /// - `KBD` for keyboards (e.g., KBD7)
+    /// - `CON` for text consoles (e.g., CON1 is the default text output, usually the screen)
+    /// - `ETH` for ethernet cards (e.g., ETH2)
     fn id(&self) -> &str;
 }
 

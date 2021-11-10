@@ -75,7 +75,7 @@ fn main() {
     print!("{}", tst.num);
 
     let mut con = DefaultConsoleController::new(
-        AnsiColor::BrightWhite, AnsiColor::BrightBlue, "TXT1".to_owned()
+        AnsiColor::BrightWhite, AnsiColor::BrightBlue, "CON1".to_owned()
     ).unwrap();
     con.clear().unwrap_or_default();
     con.set_xy(33, 0).unwrap_or_default();
@@ -145,7 +145,7 @@ fn main() {
     print!("\nHOLA\x08");
     println!();
 
-    let device = devices::get_port_device("COM1").expect("Port COM1 not found");
+    let device = devices::get_port_device("SER1").expect("Port SER1 not found");
     let port = device.unwrap_port();
     port.write('A' as u8).unwrap_or_default();
     port.write('d' as u8).unwrap_or_default();

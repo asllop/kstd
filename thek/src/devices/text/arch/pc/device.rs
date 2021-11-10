@@ -274,7 +274,7 @@ impl Text for VgaTextDevice {
 
 impl Id for VgaTextDevice {
     fn id(&self) -> &str {
-        "TXT1"
+        "CON1"
     }
 }
 

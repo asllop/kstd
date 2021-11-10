@@ -89,6 +89,7 @@ pub mod sys;
 
 pub mod mem;
 
+#[macro_use]
 extern crate alloc;
 use alloc::borrow::ToOwned;
 
@@ -116,7 +117,7 @@ pub type DefaultConsoleController = TextController;
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     //TODO: stop task scheduling, once we have multitasking
-    let dev_id = "TXT1";
+    let dev_id = "CON1";
     if let Some(device) = devices::get_text_device(dev_id) {
         if let Device::Text(txt_dev) = device {
             // Reset mutex, just in case we panicked while still holding a lock.
