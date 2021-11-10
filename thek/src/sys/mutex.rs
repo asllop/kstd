@@ -68,6 +68,11 @@ impl<'a, T> KLock<'a, T> {
             host_ref: unsafe { &mut *mutex_ref.host.get() }
         }
     }
+
+    /// Access to internal unsafe cell.
+    pub fn get_host(&self) -> &UnsafeCell<T> {
+        &self.mutex_ref.host
+    }
 }
 
 impl<'a, T> Deref for KLock<'a, T> {

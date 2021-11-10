@@ -13,3 +13,5 @@
 pub mod text;
 
 pub mod port;
+
+pub mod stdout;

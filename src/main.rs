@@ -2,21 +2,21 @@
 #![no_std]
 
 use thek::{
-    DefaultConsoleController,
     mem::{
         arch::raw_mem,
         layout::{
             MemBlockSet,
         }
     },
-    sys::{
-        KMutex
-    },
     devices::{
         self
     },
     devices::text::ansi::AnsiColor,
-    controllers::port::PortController
+    controllers::{
+        stdout::StdoutController,
+        port::PortController,
+        text::TextController
+    }
 };
 
 use core::default::Default;
@@ -32,6 +32,8 @@ use std::{
 pub extern "C" fn _start() -> ! {
     _small_allocs_mem();
     thek::devices::init_devices();
+    StdoutController::update(Box::new(TextController::default()));
+    //StdoutController::update(Box::new(PortController::default()));
     main();
     print!(".END.");
     loop {}
@@ -60,22 +62,20 @@ TODO: create tests for mem
 - Check that blocks are not overlaping.
 */
 
-struct TestStruct {
-    pub num: i32
+fn main() {
+    println!("Hola");
+    println!();
+    println!("Nom\tGen\tEdat");
+    println!("---------------------");
+    println!("Andreu\tM\t37");
+    println!("Blanca\tF\t36");
+    println!("Mar\tF\t2");
+    println!();
 }
 
-static TEST : KMutex<TestStruct> = KMutex::new(TestStruct {
-    num: 10
-});
-
-fn main() {
-
-    let mut tst = TEST.acquire();
-    print!("{} ", tst.num);
-    tst.num = 50;
-    print!("{}", tst.num);
-
-    let mut con = DefaultConsoleController::new(
+fn _main() {
+    println!("Hola!");
+    let mut con = TextController::new(
         AnsiColor::BrightWhite, AnsiColor::BrightBlue, "CON1".to_owned()
     ).unwrap();
     con.clear().unwrap_or_default();

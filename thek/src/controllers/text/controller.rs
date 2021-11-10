@@ -161,8 +161,8 @@ impl Write for TextController {
                 },
                 0x09 => {
                     // Tab
-                    let tab_num = self.x / 4;
-                    self.x = (tab_num  + 1) * 4;
+                    let tab_num = self.x / 8;
+                    self.x = (tab_num  + 1) * 8;
                     if self.x >= self.cols {
                         self.x = self.cols - 1;
                     }
