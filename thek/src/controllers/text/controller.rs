@@ -40,21 +40,20 @@ pub struct TextController {
 
 impl TextController {
     fn get_device(id: &str) -> Result<Device, KError> {
-        let device = devices::get_text_device(id);
-        let device = if device.is_none() {
-            return Err(KError::Other);
+        if let Some(d) = devices::get_text_device(id) {
+            Ok(d)
         }
         else {
-            device.unwrap()
-        };
-        Ok(device)
+            Err(KError::Other)
+        }
     }
 
     pub fn new(text_color: AnsiColor, bg_color: AnsiColor, device_id: String) -> Result<Self, KError> {
-        let text_dev = Self::get_device(&device_id)?;
-        text_dev.unwrap_text().config_cursor(true, CursorShape::Default, CursorBlink::Default)?;
-        let (cols, rows) = text_dev.unwrap_text().size()?;
-        let (x, y) = text_dev.unwrap_text().get_position()?;
+        let device = Self::get_device(&device_id)?;
+        let text_dev = device.unwrap_text();
+        text_dev.config_cursor(true, CursorShape::Default, CursorBlink::Default)?;
+        let (cols, rows) = text_dev.size()?;
+        let (x, y) = text_dev.get_position()?;
         Ok(
             Self {
                 cols, rows,
@@ -70,14 +69,15 @@ impl TextController {
     }
 
     pub fn set_xy(&mut self, x: usize, y: usize) -> Result<(), KError> {
-        let text_dev = Self::get_device(&self.device_id)?;
+        let device = Self::get_device(&self.device_id)?;
+        let text_dev = device.unwrap_text();
         self.x = x;
         self.y = y;
-        let (_, text_color, bg_color) = text_dev.unwrap_text().read(x, y)?;
+        let (_, text_color, bg_color) = text_dev.read(x, y)?;
         if let (AnsiColor::Black, AnsiColor::Black) = (text_color, bg_color) {
-            text_dev.unwrap_text().put_color(x, y, self.text_color, self.bg_color)?;
+            text_dev.put_color(x, y, self.text_color, self.bg_color)?;
         }
-        text_dev.unwrap_text().set_position(x, y)?;
+        text_dev.set_position(x, y)?;
         Ok(())
     }
 
@@ -86,10 +86,11 @@ impl TextController {
     }
 
     pub fn clear(&mut self) -> Result<(), KError> {
-        let text_dev = Self::get_device(&self.device_id)?;
+        let device = Self::get_device(&self.device_id)?;
+        let text_dev = device.unwrap_text();
         for y in 0..self.rows {
             for x in 0..self.cols {
-                text_dev.unwrap_text().write(x, y, self.text_color, self.bg_color, ' ')?;
+                text_dev.write(x, y, self.text_color, self.bg_color, ' ')?;
             }
         }
         Ok(())
@@ -107,26 +108,28 @@ impl TextController {
     }
 
     fn scroll_up(&self) -> Result<(), KError> {
-        let text_dev = Self::get_device(&self.device_id)?;
+        let device = Self::get_device(&self.device_id)?;
+        let text_dev = device.unwrap_text();
         // Copy all lines one line up (from 1 to rows-1)
         for line_num in 1..self.rows {
             for char_num in 0..self.cols {
-                if let Ok((ch, text_color, bg_color)) = text_dev.unwrap_text().read(char_num, line_num) {
-                    text_dev.unwrap_text().write(char_num, line_num - 1, text_color, bg_color, ch)?;
+                if let Ok((ch, text_color, bg_color)) = text_dev.read(char_num, line_num) {
+                    text_dev.write(char_num, line_num - 1, text_color, bg_color, ch)?;
                 }
             }
         }
         // Set last line empty
         for char_num in 0..self.cols {
-            text_dev.unwrap_text().write(char_num, self.rows - 1, self.text_color, self.bg_color, 0u8.into_char()?)?;
+            text_dev.write(char_num, self.rows - 1, self.text_color, self.bg_color, 0u8.into_char()?)?;
         }
 
         Ok(())
     }
 
     fn internal_print(&mut self, ch: u8) -> Result<(), KError> {
-        let text_dev = Self::get_device(&self.device_id)?;
-        if let Err(_) = text_dev.unwrap_text().write(self.x, self.y, self.text_color, self.bg_color, ch.into_char()?) {
+        let device = Self::get_device(&self.device_id)?;
+        let text_dev = device.unwrap_text();
+        if let Err(_) = text_dev.write(self.x, self.y, self.text_color, self.bg_color, ch.into_char()?) {
             return Err(KError::Other);
         }
         Ok(())

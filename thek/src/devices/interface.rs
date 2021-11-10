@@ -31,6 +31,7 @@ struct DeviceStore {
 
 macro_rules! def_device_map {
     () => {
+        // We have to manually create a HashMap (with hardcoded seeds) because it doesn't provide a const constructor.
         HashMap::with_hasher(
             DefaultHashBuilder::with_seeds(
                 103428633845345,
@@ -43,7 +44,6 @@ macro_rules! def_device_map {
 }
 
 impl DeviceStore {
-    // We have to manually create a HashMap (with hardcoded seeds) because it doesn't provide a const constructor.
     const fn new() -> Self {
         Self {
             storage: def_device_map!(),
@@ -56,8 +56,8 @@ impl DeviceStore {
     }
 
     fn get(&self, store: &HashMap<&'static str, Device>, id: &str) -> Option<Device> {
-        if let Some(&device_type) = store.get(id) {
-            Some(device_type)
+        if let Some(&device) = store.get(id) {
+            Some(device)
         }
         else {
             None
@@ -124,30 +124,31 @@ impl DeviceStore {
         self.generic.remove(id).is_some()
     }
     
-    pub fn register_device(&mut self, device_type: Device) -> bool {
-        match device_type {
+    /// Register device.
+    pub fn register_device(&mut self, device: Device) -> bool {
+        match device {
             Device::Storage(m) => {
-                self.storage.insert(m.acquire().id(), device_type);
+                self.storage.insert(m.acquire().id(), device);
                 true
             },
             Device::Text(m) => {
-                self.text.insert(m.acquire().id(), device_type);
+                self.text.insert(m.acquire().id(), device);
                 true
             },
             Device::Keyset(m) => {
-                self.keyset.insert(m.acquire().id(), device_type);
+                self.keyset.insert(m.acquire().id(), device);
                 true
             },
             Device::Network(m) => {
-                self.network.insert(m.acquire().id(), device_type);
+                self.network.insert(m.acquire().id(), device);
                 true
             },
             Device::Port(m) => {
-                self.port.insert(m.acquire().id(), device_type);
+                self.port.insert(m.acquire().id(), device);
                 true
             },
             Device::Generic(m) => {
-                self.generic.insert(m.acquire().id(), device_type);
+                self.generic.insert(m.acquire().id(), device);
                 true
             }
         }
@@ -203,10 +204,10 @@ pub fn get_generic_device(id: &str) -> Option<Device> {
 }
 
 /// Unregister a device.
-pub fn unregister_device(device_type: Device) -> bool {
+pub fn unregister_device(device: Device) -> bool {
     let _lock = DEVICE_STORE_MUTEX.acquire();
     unsafe {
-        match device_type {
+        match device {
             Device::Storage(m) => {
                 DEVICE_STORE.remove_storage(m.acquire().id())
             },
@@ -230,10 +231,10 @@ pub fn unregister_device(device_type: Device) -> bool {
 }
 
 /// Register a device.
-pub fn register_device(device_type: Device) -> bool {
+pub fn register_device(device: Device) -> bool {
     let _lock = DEVICE_STORE_MUTEX.acquire();
     unsafe {
-        DEVICE_STORE.register_device(device_type)
+        DEVICE_STORE.register_device(device)
     }
 }
 
@@ -243,15 +244,22 @@ static DEVICE_STORE_MUTEX : KMutex<AtomicBool> = KMutex::new(AtomicBool::new(tru
 /// Encapsulate all device types.
 #[derive(Clone, Copy)]
 pub enum Device {
+    /// Storage devices (hard disks, memory cards, ...)
     Storage(&'static KMutex<&'static dyn Storage>),
+    /// Text output devices (text screens, serial consoles, ...)
     Text(&'static KMutex<&'static dyn Text>),
+    /// Keyset input devices (keyboard, remote controller, ...)
     Keyset(&'static KMutex<&'static dyn Keyset>),
+    /// Network devices (ethernet, token ring, slip, ppp, ...)
     Network(&'static KMutex<&'static dyn Network>),
+    /// Port devices (UART, USB, SPI, ...)
     Port(&'static KMutex<&'static dyn Port>),
+    /// Generic devices. Whatever that is not covered by the other types.
     Generic(&'static KMutex<&'static dyn Generic>)
 }
 
 impl Device {
+    /// Force storage unwrap and lock device.
     pub fn unwrap_storage(&self) -> KLock<'_, &'static dyn Storage> {
         if let Device::Storage(m) = self {
             m.acquire()
@@ -261,6 +269,7 @@ impl Device {
         }
     }
     
+    /// Force text unwrap and lock device.
     pub fn unwrap_text(&self) -> KLock<'_, &'static dyn Text> {
         if let Device::Text(m) = self {
             m.acquire()
@@ -270,6 +279,7 @@ impl Device {
         }
     }
 
+    /// Force keyset unwrap and lock device.
     pub fn unwrap_keyset(&self) -> KLock<'_, &'static dyn Keyset> {
         if let Device::Keyset(m) = self {
             m.acquire()
@@ -279,6 +289,7 @@ impl Device {
         }
     }
 
+    /// Force network unwrap and lock device.
     pub fn unwrap_network(&self) -> KLock<'_, &'static dyn Network> {
         if let Device::Network(m) = self {
             m.acquire()
@@ -288,6 +299,7 @@ impl Device {
         }
     }
 
+    /// Force port unwrap and lock device.
     pub fn unwrap_port(&self) -> KLock<'_, &'static dyn Port> {
         if let Device::Port(m) = self {
             m.acquire()
@@ -297,6 +309,7 @@ impl Device {
         }
     }
 
+    /// Force generic unwrap and lock device.
     pub fn unwrap_generic(&self) -> KLock<'_, &'static dyn Generic> {
         if let Device::Generic(m) = self {
             m.acquire()
