@@ -1,4 +1,4 @@
-//! Text console controllers.
+//! Serial device console controllers.
 
 mod controller;
 pub use controller::*;

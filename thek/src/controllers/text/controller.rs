@@ -21,7 +21,6 @@ use crate::sys::{
     KError
 };
 
-extern crate alloc;
 use alloc::{
     borrow::ToOwned,
     string::String
@@ -139,7 +138,7 @@ impl TextController {
 impl Default for TextController {
     fn default() -> Self {
         Self::new(AnsiColor::White, AnsiColor::Black, "CON1".to_owned())
-            .expect("Device CON1 not found")
+            .expect("Device CON1 could not be acquired")
     }
 }
 

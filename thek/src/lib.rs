@@ -89,7 +89,7 @@ pub mod sys;
 
 pub mod mem;
 
-#[macro_use]
+//#[macro_use]
 extern crate alloc;
 use alloc::borrow::ToOwned;
 

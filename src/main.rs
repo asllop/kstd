@@ -15,7 +15,8 @@ use thek::{
     devices::{
         self
     },
-    devices::text::ansi::AnsiColor
+    devices::text::ansi::AnsiColor,
+    controllers::port::PortController
 };
 
 use core::default::Default;
@@ -145,12 +146,13 @@ fn main() {
     print!("\nHOLA\x08");
     println!();
 
+    // Using serial port device directly
     let device = devices::get_port_device("SER1").expect("Port SER1 not found");
     let port = device.unwrap_port();
-    port.write('A' as u8).unwrap_or_default();
-    port.write('d' as u8).unwrap_or_default();
-    port.write('e' as u8).unwrap_or_default();
-    port.write('u' as u8).unwrap_or_default();
+    port.write('H' as u8).unwrap_or_default();
+    port.write('o' as u8).unwrap_or_default();
+    port.write('l' as u8).unwrap_or_default();
+    port.write('a' as u8).unwrap_or_default();
     port.write('!' as u8).unwrap_or_default();
     port.write('\n' as u8).unwrap_or_default();
 
@@ -165,6 +167,15 @@ fn main() {
     }
     let input = String::from_utf8(vec).unwrap();
     println!("Input = {}", input);
+    // unlock port device
+    core::mem::drop(port);
+
+    // Using serial port device through a controller
+
+    let mut port = PortController::default();
+    writeln!(&mut port, "Hello").unwrap_or_default();
+    writeln!(&mut port, "this is using").unwrap_or_default();
+    writeln!(&mut port, "the port controller!").unwrap_or_default();
 
     //_fail_unwrap();
     //_fail_oom_big_allocs();
