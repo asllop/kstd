@@ -62,7 +62,7 @@ TODO: create tests for mem
 - Check that blocks are not overlaping.
 */
 
-fn main() {
+fn _main() {
     println!("Hola");
     println!();
     println!("Nom\tGen\tEdat");
@@ -73,7 +73,7 @@ fn main() {
     println!();
 }
 
-fn _main() {
+fn main() {
     println!("Hola!");
     let mut con = TextController::new(
         AnsiColor::BrightWhite, AnsiColor::BrightBlue, "CON1".to_owned()

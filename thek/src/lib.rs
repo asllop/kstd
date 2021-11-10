@@ -109,10 +109,6 @@ use core::{
     fmt::Write
 };
 
-// TODO: convert this into a dynamically registered controller (stdout controller)
-/// Default console controller
-pub type DefaultConsoleController = TextController;
-
 /// Panic handler.
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {

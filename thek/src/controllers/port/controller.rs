@@ -7,7 +7,10 @@ use core::{
 };
 
 use crate::devices::{
-    self, Device
+    self, Device,
+    port::{
+        UartParity, UartSpeed
+    }
 };
 
 use crate::sys::KError;
@@ -33,19 +36,41 @@ impl PortController {
         }
     }
     
-    /// We assume the port device is already configured.
-    pub fn new(device_id: String) -> Result<Self, KError> {
-        Ok(
-            Self {
-                device_id
-            }
-        )
+    /// We assume the `device_id` is a port device and is already configured.
+    pub fn new(device_id: String) -> Self {
+        Self {
+            device_id
+        }
     }
+
+    /// Create new controller for UART with port config.
+    pub fn from_uart(
+        device_id: String,
+        parity: UartParity,
+        data_bits: u8,
+        stop_bits: u8,
+        speed: UartSpeed
+    ) -> Result<Self, KError> {
+        if let Ok(device) = Self::get_device(&device_id) {
+            let port_dev = device.unwrap_port();
+            if let Some(port_dev) = port_dev.as_uart() {
+                port_dev.config(parity, data_bits, stop_bits, speed)?;
+                return Ok(
+                    Self {
+                        device_id
+                    }
+                );
+            }
+        }
+        Err(KError::Other)
+    }
+
+    //TODO: create "from" constructors for other port types.
 }
 
 impl Default for PortController {
     fn default() -> Self {
-        Self::new("SER1".to_owned()).expect("Error creating serial controller")
+        Self::new("SER1".to_owned())
     }
 }
 
