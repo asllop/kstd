@@ -13,3 +13,4 @@ panic = "abort"
 
 [dependencies]
 hashbrown = "0.11"
+macros = { path = "../macros" }

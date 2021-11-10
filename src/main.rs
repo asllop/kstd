@@ -30,8 +30,7 @@ use std::{
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
     _small_allocs_mem();
-    thek::devices::port::uart::arch::register_devices();
-    thek::devices::text::arch::register_devices();
+    thek::devices::init_devices();
     main();
     print!(".END.");
     loop {}

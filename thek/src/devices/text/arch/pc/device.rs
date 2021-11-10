@@ -11,6 +11,8 @@ use crate::devices::{
     Id, Interrupt, Device
 };
 
+use macros::device;
+
 use crate::arch::{
     inb, outb
 };
@@ -19,7 +21,7 @@ use crate::sys::{
     KMutex, KError
 };
 
-//TODO: add macro mark
+#[device(crate::devices::text::arch)]
 pub fn register_devices() {
     register_device(Device::Text(&VGA_TEXT_DEVICE_1_MUTEX));
 }

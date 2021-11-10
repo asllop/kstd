@@ -8,6 +8,8 @@ use crate::sys::{
     KMutex, KError
 };
 
+use macros::device;
+
 use crate::devices::{
     register_device,
     port::{
@@ -16,7 +18,7 @@ use crate::devices::{
     Id, Interrupt, Device
 };
 
-//TODO: add macro mark
+#[device(crate::devices::port::uart::arch)]
 pub fn register_devices() {
     register_device(Device::Port(&PC_COM_DEVICE_1_MUTEX));
 }

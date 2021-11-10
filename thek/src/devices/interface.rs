@@ -10,6 +10,8 @@ use hashbrown::{
     HashMap, hash_map::DefaultHashBuilder
 };
 
+use macros::register_devices;
+
 use super::{
     storage::Storage,
     generic::Generic,
@@ -237,6 +239,9 @@ pub fn register_device(device: Device) -> bool {
         DEVICE_STORE.register_device(device)
     }
 }
+
+#[register_devices("thek/src/devices")]
+pub fn init_devices() {}
 
 static mut DEVICE_STORE : DeviceStore = DeviceStore::new();
 static DEVICE_STORE_MUTEX : KMutex<AtomicBool> = KMutex::new(AtomicBool::new(true));
