@@ -1,13 +1,14 @@
 //! PC VGA text device.
 
 use crate::devices::{
+    register_device,
     text::{
         Text, CursorShape, CursorBlink,
         ansi::{
             AnsiColor, IntoAscii, IntoChar
         }
     },
-    Id, Interrupt, DeviceType, DeviceStore
+    Id, Interrupt, DeviceType
 };
 
 use crate::arch::{
@@ -19,8 +20,8 @@ use crate::sys::{
 };
 
 //TODO: add macro mark
-pub fn register_devices(device_store: &KMutex<DeviceStore>) {
-    device_store.acquire().register_device(DeviceType::Text(&VGA_TEXT_DEVICE_1_MUTEX));
+pub fn register_devices() {
+    register_device(DeviceType::Text(&VGA_TEXT_DEVICE_1_MUTEX));
 }
 
 static VGA_TEXT_DEVICE_1 : VgaTextDevice = VgaTextDevice::new();
@@ -271,7 +272,7 @@ impl Text for VgaTextDevice {
 
 impl Id for VgaTextDevice {
     fn id(&self) -> &str {
-        "TXT0"
+        "TXT1"
     }
 }
 

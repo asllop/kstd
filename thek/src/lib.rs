@@ -37,8 +37,8 @@
 //! 
 //! Drivers are splitted into 2 parts:
 //! 
-//! - **Devices** access hardware directly. They usually only offer very low level features, directly support by the underlying hardware. They implement API traits for interaction with the external world, like [`PlotTextDevice`][`devices::plot::text::PlotTextDevice`].
-//! - **Controllers** are arch independant and they use devices as an abstraction layer to control the hardware. Each one can work with one type of devices, like [`OutputTextController`][`controllers::text::OutputTextController`], that works with [`PlotTextDevice`][`devices::plot::text::PlotTextDevice`]s. Controllers are for inout, output or both, so they implement [`Write`] and/or [`Read`].
+//! - **Devices** access hardware directly. They usually only offer very low level features, directly support by the underlying hardware. They implement API traits for interaction with the external world.
+//! - **Controllers** are arch independant and they use devices as an abstraction layer to control the hardware. Each one can work with one type of devices.
 //! 
 //! Users should generally access controllers, because they offer a higher abstraction level and more features. Only use devices directly whenever you have a very specific and low level requirement.
 //! 
@@ -89,15 +89,17 @@ pub mod sys;
 
 pub mod mem;
 
+extern crate alloc;
+use alloc::borrow::ToOwned;
+
 use controllers::text::{
-    OutputTextController
+    TextController
 };
 
 use devices::{
-    Device,
-    text::ansi::AnsiColor,
-    plot::text::{
-        ScreenTextDevice,
+    get_device_store, DeviceType,
+    text::{
+        ansi::AnsiColor
     }
 };
 
@@ -106,23 +108,29 @@ use core::{
     fmt::Write
 };
 
-// TODO: convert this into a dynamically registered controller
+// TODO: convert this into a dynamically registered controller (stdout controller)
 /// Default console controller
-pub type DefaultConsoleController<'a> = OutputTextController<'a, ScreenTextDevice>;
+pub type DefaultConsoleController = TextController;
 
 /// Panic handler.
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     //TODO: stop task scheduling, once we have multitasking
-    
-    // Reset mutex, just in case we panicked while still holding a lock on ScreenTextDevice
-    ScreenTextDevice::mutex().reset();
-    let mut con = OutputTextController::<ScreenTextDevice>::new(
-        AnsiColor::BrightWhite,
-        AnsiColor::Red
-    );
-    con.set_xy(0, 0).unwrap_or_default();
-    write!(&mut con, "### Kernel {} ###", info).unwrap_or_default();
+    let dev_id = "TXT1";
+    if let Some(device) = get_device_store().get_text(dev_id) {
+        if let DeviceType::Text(txt_dev) = device {
+            // Reset mutex, just in case we panicked while still holding a lock.
+            txt_dev.reset();
+        }
+        let mut con = TextController::new(
+            AnsiColor::BrightWhite,
+            AnsiColor::Red,
+            dev_id.to_owned()
+        ).unwrap();
+        con.set_xy(0, 0).unwrap_or_default();
+        write!(&mut con, "### Kernel {} ###", info).unwrap_or_default();
+    }
+
     loop {
         arch::halt();
     }

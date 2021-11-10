@@ -1,5 +1,5 @@
 /// Error type
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub enum KError {
     /// Index out of bounds
     OutBounds,

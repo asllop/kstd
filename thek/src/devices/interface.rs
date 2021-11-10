@@ -1,3 +1,5 @@
+use core::sync::atomic::AtomicBool;
+
 use crate::{
     sys::{
         KMutex, KLock
@@ -160,11 +162,22 @@ impl DeviceStore {
 }
 
 /// Acquire the device store.
-pub fn get_device_store<'a>() -> &'a KMutex<DeviceStore> {
-    &DEVICE_STORE
+pub fn get_device_store<'a>() -> &'a DeviceStore {
+    unsafe {
+        &DEVICE_STORE
+    }
 }
 
-static DEVICE_STORE : KMutex<DeviceStore> = KMutex::new(DeviceStore::new());
+/// Register a device.
+pub fn register_device(device_type: DeviceType) -> bool {
+    let _lock = DEVICE_STORE_WRITE_MUTEX.acquire();
+    unsafe {
+        DEVICE_STORE.register_device(device_type)
+    }
+}
+
+static mut DEVICE_STORE : DeviceStore = DeviceStore::new();
+static DEVICE_STORE_WRITE_MUTEX : KMutex<AtomicBool> = KMutex::new(AtomicBool::new(true));
 
 /// Encapsulate all device types.
 #[derive(Clone, Copy)]

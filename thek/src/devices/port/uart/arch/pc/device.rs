@@ -9,15 +9,16 @@ use crate::sys::{
 };
 
 use crate::devices::{
+    register_device,
     port::{
         Port, PortType, Uart, UartParity, UartSpeed, Spi, I2c, OneWire, Usb
     },
-    Id, Interrupt, DeviceType, DeviceStore
+    Id, Interrupt, DeviceType
 };
 
 //TODO: add macro mark
-pub fn register_devices(device_store: &KMutex<DeviceStore>) {
-    device_store.acquire().register_device(DeviceType::Port(&PC_COM_DEVICE_1_MUTEX));
+pub fn register_devices() {
+    register_device(DeviceType::Port(&PC_COM_DEVICE_1_MUTEX));
 }
 
 static PC_COM_DEVICE_1 : PcComDevice = PcComDevice::new(0);

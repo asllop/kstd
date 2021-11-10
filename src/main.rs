@@ -30,9 +30,10 @@ use std::{
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
     _small_allocs_mem();
-    thek::devices::port::uart::arch::register_devices(get_device_store());
-    thek::devices::text::arch::register_devices(get_device_store());
+    thek::devices::port::uart::arch::register_devices();
+    thek::devices::text::arch::register_devices();
     main();
+    print!(".END.");
     loop {}
 }
 
@@ -74,11 +75,12 @@ fn main() {
     tst.num = 50;
     print!("{}", tst.num);
 
-    let mut con = DefaultConsoleController::new(AnsiColor::BrightWhite, AnsiColor::BrightBlue);
-    con.clear();
+    let mut con = DefaultConsoleController::new(
+        AnsiColor::BrightWhite, AnsiColor::BrightBlue, "TXT1".to_owned()
+    ).unwrap();
+    con.clear().unwrap_or_default();
     con.set_xy(33, 0).unwrap_or_default();
     write!(&mut con, " <<< TheK >>>").unwrap_or_default();
-    core::mem::drop(con);
 
     print!("\n\n");
 
@@ -144,7 +146,7 @@ fn main() {
     print!("\nHOLA\x08");
     println!();
 
-    let device = get_device_store().acquire().get_port("COM1").unwrap();
+    let device = get_device_store().get_port("COM1").expect("Port COM1 not found");
     let port = device.unwrap_port();
     port.write('A' as u8).unwrap_or_default();
     port.write('d' as u8).unwrap_or_default();
@@ -153,6 +155,7 @@ fn main() {
     port.write('!' as u8).unwrap_or_default();
     port.write('\n' as u8).unwrap_or_default();
 
+    print!("Enter string: ");
     let mut vec = Vec::<u8>::new();
     loop {
         let ch = port.read().unwrap_or_default();
