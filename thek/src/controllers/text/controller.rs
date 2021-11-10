@@ -7,7 +7,7 @@ use core::{
 };
 
 use crate::devices::{
-    self, DeviceType,
+    self, Device,
     text::{
         CursorBlink,
         CursorShape,
@@ -39,7 +39,7 @@ pub struct TextController {
 }
 
 impl TextController {
-    fn get_device(id: &str) -> Result<DeviceType, KError> {
+    fn get_device(id: &str) -> Result<Device, KError> {
         let device = devices::get_text_device(id);
         let device = if device.is_none() {
             return Err(KError::Other);

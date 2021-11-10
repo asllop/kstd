@@ -8,7 +8,7 @@ use crate::devices::{
             AnsiColor, IntoAscii, IntoChar
         }
     },
-    Id, Interrupt, DeviceType
+    Id, Interrupt, Device
 };
 
 use crate::arch::{
@@ -21,7 +21,7 @@ use crate::sys::{
 
 //TODO: add macro mark
 pub fn register_devices() {
-    register_device(DeviceType::Text(&VGA_TEXT_DEVICE_1_MUTEX));
+    register_device(Device::Text(&VGA_TEXT_DEVICE_1_MUTEX));
 }
 
 static VGA_TEXT_DEVICE_1 : VgaTextDevice = VgaTextDevice::new();
@@ -277,5 +277,5 @@ impl Id for VgaTextDevice {
 }
 
 impl Interrupt for VgaTextDevice {
-    fn handler(&self, _: fn(DeviceType)) -> bool { false }
+    fn handler(&self, _: fn(Device)) -> bool { false }
 }

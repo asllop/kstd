@@ -19,21 +19,14 @@ use super::{
     port::Port
 };
 
-// TODO: remove this, mutex will be implemented in the device instance handler
-/// The trait that all devices must implement.
-pub trait Device<'a> {
-    /// Return the kernel mutex that holds the device.
-    fn mutex() -> &'a KMutex<Self> where Self: Sized;
-}
-
 /// Device store.
 struct DeviceStore {
-    storage: HashMap<&'static str, DeviceType>,
-    text: HashMap<&'static str, DeviceType>,
-    keyset: HashMap<&'static str, DeviceType>,
-    network: HashMap<&'static str, DeviceType>,
-    port: HashMap<&'static str, DeviceType>,
-    generic: HashMap<&'static str, DeviceType>
+    storage: HashMap<&'static str, Device>,
+    text: HashMap<&'static str, Device>,
+    keyset: HashMap<&'static str, Device>,
+    network: HashMap<&'static str, Device>,
+    port: HashMap<&'static str, Device>,
+    generic: HashMap<&'static str, Device>
 }
 
 macro_rules! def_device_map {
@@ -62,7 +55,7 @@ impl DeviceStore {
         }
     }
 
-    fn get(&self, store: &HashMap<&'static str, DeviceType>, id: &str) -> Option<DeviceType> {
+    fn get(&self, store: &HashMap<&'static str, Device>, id: &str) -> Option<Device> {
         if let Some(&device_type) = store.get(id) {
             Some(device_type)
         }
@@ -72,7 +65,7 @@ impl DeviceStore {
     }
 
     /// Get a Storage device by ID.
-    pub fn get_storage(&self, id: &str) -> Option<DeviceType> {
+    pub fn get_storage(&self, id: &str) -> Option<Device> {
         self.get(&self.storage, id)
     }
     
@@ -82,7 +75,7 @@ impl DeviceStore {
     }
 
     /// Get a Text device by ID.
-    pub fn get_text(&self, id: &str) -> Option<DeviceType> {
+    pub fn get_text(&self, id: &str) -> Option<Device> {
         self.get(&self.text, id)
     }
     
@@ -92,7 +85,7 @@ impl DeviceStore {
     }
 
     /// Get a Keyset device by ID.
-    pub fn get_keyset(&self, id: &str) -> Option<DeviceType> {
+    pub fn get_keyset(&self, id: &str) -> Option<Device> {
         self.get(&self.keyset, id)
     }
     
@@ -102,7 +95,7 @@ impl DeviceStore {
     }
 
     /// Get a Network device by ID.
-    pub fn get_network(&self, id: &str) -> Option<DeviceType> {
+    pub fn get_network(&self, id: &str) -> Option<Device> {
         self.get(&self.network, id)
     }
     
@@ -112,7 +105,7 @@ impl DeviceStore {
     }
 
     /// Get a Port device by ID.
-    pub fn get_port(&self, id: &str) -> Option<DeviceType> {
+    pub fn get_port(&self, id: &str) -> Option<Device> {
         self.get(&self.port, id)
     }
     
@@ -122,7 +115,7 @@ impl DeviceStore {
     }
 
     /// Get a Generic device by ID.
-    pub fn get_generic(&self, id: &str) -> Option<DeviceType> {
+    pub fn get_generic(&self, id: &str) -> Option<Device> {
         self.get(&self.generic, id)
     }
     
@@ -131,29 +124,29 @@ impl DeviceStore {
         self.generic.remove(id).is_some()
     }
     
-    pub fn register_device(&mut self, device_type: DeviceType) -> bool {
+    pub fn register_device(&mut self, device_type: Device) -> bool {
         match device_type {
-            DeviceType::Storage(m) => {
+            Device::Storage(m) => {
                 self.storage.insert(m.acquire().id(), device_type);
                 true
             },
-            DeviceType::Text(m) => {
+            Device::Text(m) => {
                 self.text.insert(m.acquire().id(), device_type);
                 true
             },
-            DeviceType::Keyset(m) => {
+            Device::Keyset(m) => {
                 self.keyset.insert(m.acquire().id(), device_type);
                 true
             },
-            DeviceType::Network(m) => {
+            Device::Network(m) => {
                 self.network.insert(m.acquire().id(), device_type);
                 true
             },
-            DeviceType::Port(m) => {
+            Device::Port(m) => {
                 self.port.insert(m.acquire().id(), device_type);
                 true
             },
-            DeviceType::Generic(m) => {
+            Device::Generic(m) => {
                 self.generic.insert(m.acquire().id(), device_type);
                 true
             }
@@ -162,7 +155,7 @@ impl DeviceStore {
 }
 
 /// Get a Storage device by ID.
-pub fn get_storage_device(id: &str) -> Option<DeviceType> {
+pub fn get_storage_device(id: &str) -> Option<Device> {
     let _lock = DEVICE_STORE_MUTEX.acquire();
     unsafe {
         DEVICE_STORE.get_storage(id)
@@ -170,7 +163,7 @@ pub fn get_storage_device(id: &str) -> Option<DeviceType> {
 }
 
 /// Get a Text device by ID.
-pub fn get_text_device(id: &str) -> Option<DeviceType> {
+pub fn get_text_device(id: &str) -> Option<Device> {
     let _lock = DEVICE_STORE_MUTEX.acquire();
     unsafe {
         DEVICE_STORE.get_text(id)
@@ -178,7 +171,7 @@ pub fn get_text_device(id: &str) -> Option<DeviceType> {
 }
 
 /// Get a Keyset device by ID.
-pub fn get_keyset_device(id: &str) -> Option<DeviceType> {
+pub fn get_keyset_device(id: &str) -> Option<Device> {
     let _lock = DEVICE_STORE_MUTEX.acquire();
     unsafe {
         DEVICE_STORE.get_keyset(id)
@@ -186,7 +179,7 @@ pub fn get_keyset_device(id: &str) -> Option<DeviceType> {
 }
 
 /// Get a Network device by ID.
-pub fn get_network_device(id: &str) -> Option<DeviceType> {
+pub fn get_network_device(id: &str) -> Option<Device> {
     let _lock = DEVICE_STORE_MUTEX.acquire();
     unsafe {
         DEVICE_STORE.get_network(id)
@@ -194,7 +187,7 @@ pub fn get_network_device(id: &str) -> Option<DeviceType> {
 }
 
 /// Get a Port device by ID.
-pub fn get_port_device(id: &str) -> Option<DeviceType> {
+pub fn get_port_device(id: &str) -> Option<Device> {
     let _lock = DEVICE_STORE_MUTEX.acquire();
     unsafe {
         DEVICE_STORE.get_port(id)
@@ -202,34 +195,34 @@ pub fn get_port_device(id: &str) -> Option<DeviceType> {
 }
 
 /// Get a Generic device by ID.
-pub fn get_generic_device(id: &str) -> Option<DeviceType> {
+pub fn get_generic_device(id: &str) -> Option<Device> {
     let _lock = DEVICE_STORE_MUTEX.acquire();
     unsafe {
         DEVICE_STORE.get_generic(id)
     }
 }
 
-/// Remove a device.
-pub fn remove_device(device_type: DeviceType) -> bool {
+/// Unregister a device.
+pub fn unregister_device(device_type: Device) -> bool {
     let _lock = DEVICE_STORE_MUTEX.acquire();
     unsafe {
         match device_type {
-            DeviceType::Storage(m) => {
+            Device::Storage(m) => {
                 DEVICE_STORE.remove_storage(m.acquire().id())
             },
-            DeviceType::Text(m) => {
+            Device::Text(m) => {
                 DEVICE_STORE.remove_text(m.acquire().id())
             },
-            DeviceType::Keyset(m) => {
+            Device::Keyset(m) => {
                 DEVICE_STORE.remove_keyset(m.acquire().id())
             },
-            DeviceType::Network(m) => {
+            Device::Network(m) => {
                 DEVICE_STORE.remove_network(m.acquire().id())
             },
-            DeviceType::Port(m) => {
+            Device::Port(m) => {
                 DEVICE_STORE.remove_port(m.acquire().id())
             },
-            DeviceType::Generic(m) => {
+            Device::Generic(m) => {
                 DEVICE_STORE.remove_generic(m.acquire().id())
             }
         }
@@ -237,7 +230,7 @@ pub fn remove_device(device_type: DeviceType) -> bool {
 }
 
 /// Register a device.
-pub fn register_device(device_type: DeviceType) -> bool {
+pub fn register_device(device_type: Device) -> bool {
     let _lock = DEVICE_STORE_MUTEX.acquire();
     unsafe {
         DEVICE_STORE.register_device(device_type)
@@ -249,7 +242,7 @@ static DEVICE_STORE_MUTEX : KMutex<AtomicBool> = KMutex::new(AtomicBool::new(tru
 
 /// Encapsulate all device types.
 #[derive(Clone, Copy)]
-pub enum DeviceType {
+pub enum Device {
     Storage(&'static KMutex<&'static dyn Storage>),
     Text(&'static KMutex<&'static dyn Text>),
     Keyset(&'static KMutex<&'static dyn Keyset>),
@@ -258,9 +251,9 @@ pub enum DeviceType {
     Generic(&'static KMutex<&'static dyn Generic>)
 }
 
-impl DeviceType {
+impl Device {
     pub fn unwrap_storage(&self) -> KLock<'_, &'static dyn Storage> {
-        if let DeviceType::Storage(m) = self {
+        if let Device::Storage(m) = self {
             m.acquire()
         }
         else {
@@ -269,7 +262,7 @@ impl DeviceType {
     }
     
     pub fn unwrap_text(&self) -> KLock<'_, &'static dyn Text> {
-        if let DeviceType::Text(m) = self {
+        if let Device::Text(m) = self {
             m.acquire()
         }
         else {
@@ -278,7 +271,7 @@ impl DeviceType {
     }
 
     pub fn unwrap_keyset(&self) -> KLock<'_, &'static dyn Keyset> {
-        if let DeviceType::Keyset(m) = self {
+        if let Device::Keyset(m) = self {
             m.acquire()
         }
         else {
@@ -287,7 +280,7 @@ impl DeviceType {
     }
 
     pub fn unwrap_network(&self) -> KLock<'_, &'static dyn Network> {
-        if let DeviceType::Network(m) = self {
+        if let Device::Network(m) = self {
             m.acquire()
         }
         else {
@@ -296,7 +289,7 @@ impl DeviceType {
     }
 
     pub fn unwrap_port(&self) -> KLock<'_, &'static dyn Port> {
-        if let DeviceType::Port(m) = self {
+        if let Device::Port(m) = self {
             m.acquire()
         }
         else {
@@ -305,7 +298,7 @@ impl DeviceType {
     }
 
     pub fn unwrap_generic(&self) -> KLock<'_, &'static dyn Generic> {
-        if let DeviceType::Generic(m) = self {
+        if let Device::Generic(m) = self {
             m.acquire()
         }
         else {
@@ -325,7 +318,7 @@ pub trait Id {
 pub trait Interrupt {
     /// Set an interrupt handler.
     /// * Return: could be set or not.
-    fn handler(&self, func: fn(device: DeviceType)) -> bool;
+    fn handler(&self, func: fn(device: Device)) -> bool;
 }
 
 /*
