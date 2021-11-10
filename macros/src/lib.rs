@@ -99,6 +99,7 @@ fn impl_register_devices_macro(ast: &syn::ItemFn, attr_ast: &syn::ExprLit) -> To
 
     // Generate the function to register all devices.
     let gen = quote! {
+        /// Register all devices.
         pub fn #name() {
             #calls_tokens
         }
