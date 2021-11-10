@@ -32,8 +32,8 @@ use std::{
 pub extern "C" fn _start() -> ! {
     _small_allocs_mem();
     thek::devices::init_devices();
-    StdoutController::update(Box::new(TextController::default()));
-    //StdoutController::update(Box::new(PortController::default()));
+    StdoutController::set(Box::new(TextController::default()));
+    //StdoutController::set(Box::new(PortController::default()));
     main();
     print!(".END.");
     loop {}

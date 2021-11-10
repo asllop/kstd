@@ -21,8 +21,8 @@ impl StdoutController {
         StdoutController
     }
 
-    /// Update stdout controller
-    pub fn update(val: Box<dyn Write>) {
+    /// Set the stdout controller.
+    pub fn set(val: Box<dyn Write>) {
         let lock = STDOUT.acquire();
         let cell = lock.get_host();
         unsafe {
