@@ -27,7 +27,7 @@ pub trait Device<'a> {
 }
 
 /// Device store.
-pub struct DeviceStore {
+struct DeviceStore {
     storage: HashMap<&'static str, DeviceType>,
     text: HashMap<&'static str, DeviceType>,
     keyset: HashMap<&'static str, DeviceType>,
@@ -163,6 +163,7 @@ impl DeviceStore {
 
 /// Get a Storage device by ID.
 pub fn get_storage_device(id: &str) -> Option<DeviceType> {
+    let _lock = DEVICE_STORE_MUTEX.acquire();
     unsafe {
         DEVICE_STORE.get_storage(id)
     }
@@ -170,6 +171,7 @@ pub fn get_storage_device(id: &str) -> Option<DeviceType> {
 
 /// Get a Text device by ID.
 pub fn get_text_device(id: &str) -> Option<DeviceType> {
+    let _lock = DEVICE_STORE_MUTEX.acquire();
     unsafe {
         DEVICE_STORE.get_text(id)
     }
@@ -177,6 +179,7 @@ pub fn get_text_device(id: &str) -> Option<DeviceType> {
 
 /// Get a Keyset device by ID.
 pub fn get_keyset_device(id: &str) -> Option<DeviceType> {
+    let _lock = DEVICE_STORE_MUTEX.acquire();
     unsafe {
         DEVICE_STORE.get_keyset(id)
     }
@@ -184,6 +187,7 @@ pub fn get_keyset_device(id: &str) -> Option<DeviceType> {
 
 /// Get a Network device by ID.
 pub fn get_network_device(id: &str) -> Option<DeviceType> {
+    let _lock = DEVICE_STORE_MUTEX.acquire();
     unsafe {
         DEVICE_STORE.get_network(id)
     }
@@ -191,6 +195,7 @@ pub fn get_network_device(id: &str) -> Option<DeviceType> {
 
 /// Get a Port device by ID.
 pub fn get_port_device(id: &str) -> Option<DeviceType> {
+    let _lock = DEVICE_STORE_MUTEX.acquire();
     unsafe {
         DEVICE_STORE.get_port(id)
     }
@@ -198,21 +203,49 @@ pub fn get_port_device(id: &str) -> Option<DeviceType> {
 
 /// Get a Generic device by ID.
 pub fn get_generic_device(id: &str) -> Option<DeviceType> {
+    let _lock = DEVICE_STORE_MUTEX.acquire();
     unsafe {
         DEVICE_STORE.get_generic(id)
     }
 }
 
+/// Remove a device.
+pub fn remove_device(device_type: DeviceType) -> bool {
+    let _lock = DEVICE_STORE_MUTEX.acquire();
+    unsafe {
+        match device_type {
+            DeviceType::Storage(m) => {
+                DEVICE_STORE.remove_storage(m.acquire().id())
+            },
+            DeviceType::Text(m) => {
+                DEVICE_STORE.remove_text(m.acquire().id())
+            },
+            DeviceType::Keyset(m) => {
+                DEVICE_STORE.remove_keyset(m.acquire().id())
+            },
+            DeviceType::Network(m) => {
+                DEVICE_STORE.remove_network(m.acquire().id())
+            },
+            DeviceType::Port(m) => {
+                DEVICE_STORE.remove_port(m.acquire().id())
+            },
+            DeviceType::Generic(m) => {
+                DEVICE_STORE.remove_generic(m.acquire().id())
+            }
+        }
+    }
+}
+
 /// Register a device.
 pub fn register_device(device_type: DeviceType) -> bool {
-    let _lock = DEVICE_STORE_WRITE_MUTEX.acquire();
+    let _lock = DEVICE_STORE_MUTEX.acquire();
     unsafe {
         DEVICE_STORE.register_device(device_type)
     }
 }
 
 static mut DEVICE_STORE : DeviceStore = DeviceStore::new();
-static DEVICE_STORE_WRITE_MUTEX : KMutex<AtomicBool> = KMutex::new(AtomicBool::new(true));
+static DEVICE_STORE_MUTEX : KMutex<AtomicBool> = KMutex::new(AtomicBool::new(true));
 
 /// Encapsulate all device types.
 #[derive(Clone, Copy)]
