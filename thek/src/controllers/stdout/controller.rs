@@ -13,6 +13,8 @@ use core::{
     }
 };
 
+use crate::controllers::text::TextController;
+
 /// Stdout controller. It's a wrapper to other controllers implementing [`core::fmt::Write`][`Write`].
 pub struct StdoutController;
 
@@ -55,7 +57,11 @@ impl DerefMut for StdoutController {
 
 impl Default for StdoutController {
     fn default() -> Self {
-        Self::new()
+        let _self = Self::new();
+        if let None = _self.as_deref() {
+            Self::set(Box::new(TextController::default()));
+        }
+        _self
     }
 }
 

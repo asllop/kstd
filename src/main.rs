@@ -33,7 +33,7 @@ use std::{
 pub extern "C" fn _start() -> ! {
     _small_allocs_mem();
     thek::devices::init_devices();
-    StdoutController::set(Box::new(TextController::default()));
+    //StdoutController::set(Box::new(TextController::default()));
     //StdoutController::set(Box::new(PortController::default()));
     main();
     print!(".END.");
@@ -175,24 +175,25 @@ fn main() {
 
     // Using serial port device through a controller
 
-    let mut port = PortController::default();
-    writeln!(&mut port, "Hello").unwrap_or_default();
-    writeln!(&mut port, "this is using").unwrap_or_default();
-    writeln!(&mut port, "the port controller!").unwrap_or_default();
+    StdoutController::set(Box::new(PortController::default()));
+
+    println!("Hello");
+    println!("this is using");
+    println!("the port controller!");
 
     let mut map_1 = HashMap::new();
     map_1.insert("nom", "Andreu");
-    map_1.insert("cognoms", "Santaren Llop");
+    map_1.insert("cognoms", "Santarén Llop");
     map_1.insert("edat", "37");
 
     let mut map_2 = HashMap::new();
     map_2.insert("nom", "Blanca");
-    map_2.insert("cognoms", "Garces Duenas");
+    map_2.insert("cognoms", "Garcés Dueñas");
     map_2.insert("edat", "36");
 
     let mut map_3 = HashMap::new();
     map_3.insert("nom", "Mar");
-    map_3.insert("cognoms", "Santaren Garces");
+    map_3.insert("cognoms", "Santarén Garcés");
     map_3.insert("edat", "2");
 
     let llista = vec!(map_1, map_2, map_3);
