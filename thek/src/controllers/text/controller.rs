@@ -187,17 +187,8 @@ impl Write for TextController {
                     }
                 },
                 0x1b => {
-                    /*
                     // ANSI Escape Sequence
-                    if self.device_lock.is_ansi() {
-                        // The device can handle ANSI commands
-                        self.internal_print(*ch)?;
-                        self.inc_pos();
-                    }
-                    else {
-                        //TODO: parse ANSI commands
-                    }
-                    */
+                    // TODO: parse ANSI commands and perform action
                 },
                 _ => {
                     // Everything else is considered a printable char (even if it's not)

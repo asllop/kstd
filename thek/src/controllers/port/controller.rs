@@ -20,7 +20,6 @@ use alloc::{
     string::String
 };
 
-
 /// Port controller.
 pub struct PortController {
     device_id: String

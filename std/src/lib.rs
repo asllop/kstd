@@ -20,6 +20,9 @@
 #![feature(assert_matches)]
 #![feature(async_stream)]
 #![feature(const_format_args)]
+#![feature(hashmap_internals)]
+#![feature(try_reserve_kind)]
+#![feature(extend_one)]
 
 #[allow(unused_imports)] // macros from `alloc` are not used on all platforms
 #[macro_use]
@@ -156,6 +159,8 @@ pub use core::{
 pub use core::primitive;
 
 pub mod alloc;
+
+pub mod collections;
 
 // The standard macros that are not built-in to the compiler.
 #[macro_use]

@@ -107,6 +107,7 @@ dependencies = [
 name = "std"
 version = "0.0.0"
 dependencies = [
+ "hashbrown",
  "thek",
 ]
 
