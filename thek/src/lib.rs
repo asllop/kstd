@@ -109,6 +109,34 @@ use core::{
     fmt::Write
 };
 
+#[macro_export]
+macro_rules! thek_dbg {
+    () => {
+        let mut con = crate::controllers::port::PortController::default();
+        core::fmt::write(&mut con, core::format_args!("[{}:{}]\n", file!(), line!())).unwrap_or(())
+    };
+    ($val:expr $(,)?) => {
+        // Use of `match` here is intentional because it affects the lifetimes
+        // of temporaries - https://stackoverflow.com/a/48732525/1063961
+        match $val {
+            tmp => {
+                let mut con = crate::controllers::port::PortController::default();
+                core::fmt::write(
+                    &mut con,
+                    core::format_args!(
+                        "[{}:{}] {} = {:#?}\n",
+                        file!(), line!(), stringify!($val), &tmp
+                    )
+                ).unwrap_or(());
+                tmp
+            }
+        }
+    };
+    ($($val:expr),+ $(,)?) => {
+        ($($crate::thek_dbg!($val)),+,)
+    };
+}
+
 /// Panic handler.
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {

@@ -41,25 +41,20 @@ pub trait IntoChar {
     fn into_char(&self) -> Result<char, Self::Error>;
 }
 
-/// Convert char into ASCII character.
+// TODO: use different encodings
+/// Convert char into ASCII character (8 bits, assuming Latin-1 encoding).
 impl IntoAscii for char {
     type Error = KError;
     fn into_ascii(&self) -> Result<u8, Self::Error> {
-        let b = (*self as u32 & 0x7F) as u8;
-        if b as char == *self {
-            Ok(b)
-        }
-        else {
-            //TODO: create error
-            Err(KError::Other)
-        }
+        Ok(*self as u8)
     }
 }
 
-/// Convert u8 ASCII into character.
+// TODO: use different encodings
+/// Convert u8 ASCII into character (8 bits, assuming Latin-1 encoding).
 impl IntoChar for u8 {
     type Error = KError;
     fn into_char(&self) -> Result<char, Self::Error> {
-        Ok((*self & 0x7F) as char)
+        Ok(*self as char)
     }
 }

@@ -77,6 +77,7 @@ impl Write for PortController {
     fn write_str(&mut self, s: &str) -> Result<(), Error> {
         if let Ok(device) = Self::get_device(&self.device_id) {
             let port_dev = device.unwrap_port();
+            //TODO: iter as chars and convert into appropiate encoding (configured in the kernel). Otherwise we are always using UTF-8, the str type encoding.
             for ch in s.as_bytes() {
                 port_dev.write(*ch).unwrap_or_default();
             }

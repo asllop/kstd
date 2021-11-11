@@ -125,6 +125,9 @@ impl TextController {
         Ok(())
     }
 
+    // TODO: convert from unicode to any encoding we have configured in the kernel
+    // Default for VGA console is ASCII extended:
+    // https://upload.wikimedia.org/wikipedia/commons/2/26/Ascii-codes-table.png
     fn internal_print(&mut self, ch: u8) -> Result<(), KError> {
         let device = Self::get_device(&self.device_id)?;
         let text_dev = device.unwrap_text();
@@ -144,8 +147,8 @@ impl Default for TextController {
 
 impl Write for TextController {
     fn write_str(&mut self, s: &str) -> Result<(), Error> {
-        for ch in s.as_bytes() {
-            match *ch {
+        for ch in s.chars() {
+            match ch as u32 {
                 0x0a => {
                     // Newline
                     if self.y + 1 >= self.rows {
@@ -192,7 +195,7 @@ impl Write for TextController {
                 },
                 _ => {
                     // Everything else is considered a printable char (even if it's not)
-                    if self.internal_print(*ch).is_err() {
+                    if self.internal_print(ch.into_ascii().unwrap_or_default()).is_err() {
                         return Err(Error);
                     }
                     self.inc_pos();
