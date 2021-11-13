@@ -1,4 +1,4 @@
-//! General functions and types for specific architectures.
+//! Arch dependent CPU handling.
 
 #[cfg(feature = "pc64")]
 mod x86_64;

@@ -1,5 +1,6 @@
 //! Architecture dependent text devices.
 
-//TODO: use feature to select arch
+#[cfg(feature = "pc64")]
 mod pc;
-pub use pc::*; 
+#[cfg(feature = "pc64")]
+pub use pc::*;

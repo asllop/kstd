@@ -76,4 +76,5 @@ impl Write for StdoutController {
     }
 }
 
+//TODO: use UniBox64 or 128 instead of a Box
 static STDOUT : KMutex<Option<Box<dyn Write>>> = KMutex::new(None);

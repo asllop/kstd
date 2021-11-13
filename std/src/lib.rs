@@ -1,7 +1,6 @@
 #![no_std]
 
 //TODO:
-// - HashMap and other maps.
 // - io: stdio, bufread, read/write/seek traits.
 // - fake env:args. hardcoded, from a file, etc.
 

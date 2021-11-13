@@ -2,6 +2,7 @@
 #![no_std]
 
 use thek::{
+    cpu,
     mem::{
         arch::raw_mem,
         layout::{
@@ -31,6 +32,7 @@ use std::{
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
+    cpu::init_ints();
     _small_allocs_mem();
     thek::devices::init_devices();
     //StdoutController::set(Box::new(TextController::default()));
@@ -180,6 +182,8 @@ fn main() {
     println!("Hello");
     println!("this is using");
     println!("the port controller!");
+
+    cpu::arch::int_3();
 
     let mut map_1 = HashMap::new();
     map_1.insert("nom", "Andreu");

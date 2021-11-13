@@ -71,13 +71,13 @@
 Crates tp simplify x86 low level handling:
 
 https://docs.rs/x86_64/
-https://docs.rs/x86_interrupts
 https://docs.rs/x86/
 */
 
 #![no_std]
 #![feature(asm)]
-#![feature(alloc_error_handler)] 
+#![feature(alloc_error_handler)]
+#![feature(abi_x86_interrupt)]
 
 pub mod arch;
 
@@ -88,6 +88,8 @@ pub mod controllers;
 pub mod sys;
 
 pub mod mem;
+
+pub mod cpu;
 
 //#[macro_use]
 extern crate alloc;

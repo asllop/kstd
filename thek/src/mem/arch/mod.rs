@@ -1,5 +1,6 @@
 //! Architectue dependant memory infrastructure.
 
-// TODO: select arch by feature
-pub mod x86_64;
-pub use x86_64::*;
+#[cfg(feature = "pc64")]
+mod x86_64;
+#[cfg(feature = "pc64")]
+pub use self::x86_64::*;
