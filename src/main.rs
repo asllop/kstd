@@ -32,8 +32,8 @@ use std::{
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    cpu::init_ints();
-    _small_allocs_mem();
+    cpu::init();
+    small_allocs_mem();
     thek::devices::init_devices();
     //StdoutController::set(Box::new(TextController::default()));
     //StdoutController::set(Box::new(PortController::default()));
@@ -43,18 +43,11 @@ pub extern "C" fn _start() -> ! {
 }
 
 /// Setup memory schema optimized for small allocations
-fn _small_allocs_mem() {
+fn small_allocs_mem() {
     thek::mem::init::setup_mem(&[
-        (256, 90),              // 90% of mem in segments of 256Bytes
+        (256, 80),              // 80% of mem in segments of 256Bytes
+        (1024, 10),             // 10% of mem in segments of 1K
         (usize::MAX, 10)        // Remaining 10% in one segment
-    ]);
-}
-
-/// Setup memory schema optimized for big allocations
-fn _big_allocs_mem() {
-    thek::mem::init::setup_mem(&[
-        (4*1024, 10),       // 10% of mem in segments of 4KB
-        (usize::MAX, 90)    // Remaining 90% in one single segment
     ]);
 }
 

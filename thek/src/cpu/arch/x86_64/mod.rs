@@ -9,8 +9,13 @@ use crate::sys::{
     KMutex
 };
 
+/// Initialize ints, memory segments, etc.
+pub fn init() {
+    init_ints();
+}
+
 /// Init x86_64 essential interrupts.
-pub fn init_ints() {
+fn init_ints() {
     let mut idt = IDT.acquire();
     // Set double fault interrupt handler
     idt.double_fault.set_handler_fn(double_fault_int_handler);
