@@ -16,8 +16,8 @@ const DEFAULT_SEGMENT_SIZE : usize = 4*1024;
 
 /// Initialize memory structures.
 /// 
-/// Divide the memory in N blocks (`schema.len()` being N) of specified segment size (in bytes) and % of the memory occupied by the block (the first and second tuple positions respectively).
-/// The sum of all % must be 100, otherwise it will panic.
+/// Divide the memory in N blocks (max 5) of specified segment size (in bytes) and % of the memory occupied by the block (the first and second tuple positions respectively).
+/// The segment sizes must be sorted in ascending order, and the sum of all % must be 100, otherwise it will panic.
 /// Alignment is not adjusted in segments, only in blocks, so the user is responsable for choosing a segment size that is a multiple of the architecture alignment.
 /// 
 /// # Example
@@ -35,7 +35,7 @@ pub fn setup_mem(schema: &[(usize, u8)]) {
     };
 
     if schema.len() > MAX_NUM_BLOCKS {
-        panic!("Number of blocks can't be bigger than MAX_NUM_BLOCKS constant");
+        panic!("Number of blocks can't be bigger than {} constant", MAX_NUM_BLOCKS);
     }
 
     let mut sum = 0;

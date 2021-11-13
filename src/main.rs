@@ -35,8 +35,7 @@ pub extern "C" fn _start() -> ! {
     cpu::init();
     small_allocs_mem();
     thek::devices::init_devices();
-    //StdoutController::set(Box::new(TextController::default()));
-    //StdoutController::set(Box::new(PortController::default()));
+    
     main();
     print!(".END.");
     loop {}
