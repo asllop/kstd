@@ -183,8 +183,6 @@ fn main() {
     println!("this is using");
     println!("the port controller!");
 
-    cpu::arch::int_3();
-
     let mut map_1 = HashMap::new();
     map_1.insert("nom", "Andreu");
     map_1.insert("cognoms", "Santarén Llop");
@@ -207,6 +205,7 @@ fn main() {
     //_fail_unwrap();
     //_fail_oom_big_allocs();
     //_fail_oom_small_allocs();
+    //_force_fault();
 }
 
 fn print_count(n: i32) {
@@ -250,4 +249,10 @@ fn _fail_oom_small_allocs() {
     loop {
         v.push(String::from("This is a string with many chars ...... .... .... ....... ....... ...... ........ ..... .... .. finish!"));
     }
+}
+
+fn _force_fault() {
+    unsafe {
+        *(0xffffffffffffffff as *mut u64) = 0;
+    };
 }

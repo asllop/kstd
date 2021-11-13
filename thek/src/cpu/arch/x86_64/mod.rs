@@ -18,7 +18,9 @@ use core::{
 pub fn init_ints() {
     let mut idt = unsafe { IDT.acquire() };
     // Set breakpoint interrupt handler
-    idt.breakpoint.set_handler_fn(breakpoint_handler);
+    idt.breakpoint.set_handler_fn(breakpoint_int_handler);
+    // Set double fault interrupt handler
+    idt.double_fault.set_handler_fn(double_fault_int_handler);
     // Load IDT
     unsafe {
         idt.load_unsafe();
@@ -26,14 +28,14 @@ pub fn init_ints() {
 }
 
 extern "x86-interrupt"
-fn breakpoint_handler(stack_frame: InterruptStackFrame) {
+fn breakpoint_int_handler(stack_frame: InterruptStackFrame) {
     let mut con = StdoutController::default();
     write!(&mut con, "Breakpoint! = {:#?}\n", stack_frame).unwrap_or_default();
 }
 
-static mut IDT: KMutex<InterruptDescriptorTable> = KMutex::new(InterruptDescriptorTable::new());
-
-//TEST
-pub fn int_3() {
-    x86_64::instructions::interrupts::int3();
+extern "x86-interrupt"
+fn double_fault_int_handler(stack_frame: InterruptStackFrame, error_code: u64) -> ! {
+    panic!("DOUBLE FAULT = {} , {:#?}", error_code, stack_frame);
 }
+
+static mut IDT: KMutex<InterruptDescriptorTable> = KMutex::new(InterruptDescriptorTable::new());
