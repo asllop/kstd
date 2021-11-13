@@ -8,17 +8,10 @@ use x86_64::structures::{
 use crate::sys::{
     KMutex
 };
-use crate::controllers::stdout::StdoutController;
-use core::{
-    write,
-    fmt::Write
-};
 
 /// Init x86_64 essential interrupts.
 pub fn init_ints() {
-    let mut idt = unsafe { IDT.acquire() };
-    // Set breakpoint interrupt handler
-    idt.breakpoint.set_handler_fn(breakpoint_int_handler);
+    let mut idt = IDT.acquire();
     // Set double fault interrupt handler
     idt.double_fault.set_handler_fn(double_fault_int_handler);
     // Load IDT
@@ -28,14 +21,8 @@ pub fn init_ints() {
 }
 
 extern "x86-interrupt"
-fn breakpoint_int_handler(stack_frame: InterruptStackFrame) {
-    let mut con = StdoutController::default();
-    write!(&mut con, "Breakpoint! = {:#?}\n", stack_frame).unwrap_or_default();
-}
-
-extern "x86-interrupt"
 fn double_fault_int_handler(stack_frame: InterruptStackFrame, error_code: u64) -> ! {
     panic!("DOUBLE FAULT = {} , {:#?}", error_code, stack_frame);
 }
 
-static mut IDT: KMutex<InterruptDescriptorTable> = KMutex::new(InterruptDescriptorTable::new());
+static IDT: KMutex<InterruptDescriptorTable> = KMutex::new(InterruptDescriptorTable::new());
