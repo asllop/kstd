@@ -13,4 +13,4 @@ pub mod generic;
 pub mod keyset;
 
 mod interface;
-pub use interface::*;
+pub use self::interface::*;

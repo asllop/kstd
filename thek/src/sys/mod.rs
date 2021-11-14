@@ -1,10 +1,10 @@
 //! System wide utilities.
 
 mod mutex;
-pub use mutex::*;
+pub use self::mutex::*;
 
 mod error;
-pub use error::*;
+pub use self::error::*;
 
 mod defs;
-pub use defs::*;
+pub use self::defs::*;

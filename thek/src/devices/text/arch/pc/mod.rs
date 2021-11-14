@@ -1,4 +1,4 @@
 //! PC text devices.
 
 pub mod device;
-pub use device::*;
+pub use self::device::*;
