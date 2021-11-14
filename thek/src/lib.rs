@@ -79,8 +79,6 @@ https://docs.rs/x86/
 #![feature(alloc_error_handler)]
 #![feature(abi_x86_interrupt)]
 
-pub mod arch;
-
 pub mod devices;
 
 pub mod controllers;
@@ -159,6 +157,6 @@ fn panic(info: &PanicInfo) -> ! {
     }
 
     loop {
-        arch::halt();
+        cpu::arch::halt();
     }
 }

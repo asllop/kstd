@@ -2,7 +2,6 @@
 #![no_std]
 
 use thek::{
-    cpu,
     mem::{
         arch::raw_mem,
         layout::{
@@ -32,10 +31,10 @@ use std::{
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    cpu::init();
+    thek::cpu::init();
     small_allocs_mem();
     thek::devices::init_devices();
-    
+
     main();
     print!(".END.");
     loop {}
@@ -46,7 +45,8 @@ fn small_allocs_mem() {
     thek::mem::init::setup_mem(&[
         (256, 80),              // 80% of mem in segments of 256Bytes
         (1024, 10),             // 10% of mem in segments of 1K
-        (usize::MAX, 10)        // Remaining 10% in one segment
+        (usize::MAX - 1, 5),    // Remaining 10% in two segments
+        (usize::MAX, 5)
     ]);
 }
 
@@ -86,7 +86,7 @@ fn main() {
 
     for i in 0..block_set.len() {
         let blay = block_set.block_at(i).unwrap();
-        println!("({})\t{:#x}\tseg={}\tblck={}\tstck={}\tpyld={}",
+        println!("({}) ; {:#x} ; seg={} ; blck={} ; stck={} ; pyld={}",
             blay.num_segments,
             blay.payload_ptr as usize,
             blay.segment_size,

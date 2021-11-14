@@ -31,3 +31,30 @@ fn double_fault_int_handler(stack_frame: InterruptStackFrame, error_code: u64) -
 }
 
 static IDT: KMutex<InterruptDescriptorTable> = KMutex::new(InterruptDescriptorTable::new());
+
+//TODO: set timer imterrupt and create a task switcher
+
+
+/// Input byte from port
+pub fn inb(port: u16) -> u8 {
+    let r: u8;
+    unsafe {
+        asm!("in al, dx", out("al") r, in("dx") port);
+    }
+    r
+}
+
+/// Output byte to port
+pub fn outb(port: u16, data: u8) {
+    unsafe {
+        asm!("out dx, al", in("dx") port, in("al") data);
+    }
+}
+
+/// Halt
+pub fn halt() {
+    unsafe {
+        asm!("cli");
+        asm!("hlt");
+    }
+}

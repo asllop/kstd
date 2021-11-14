@@ -1,6 +1,6 @@
 //! PC COM port device (UART port).
 
-use crate::arch::{
+use crate::cpu::arch::{
     inb, outb
 };
 

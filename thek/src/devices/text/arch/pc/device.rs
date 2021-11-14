@@ -13,7 +13,7 @@ use crate::devices::{
 
 use macros::device;
 
-use crate::arch::{
+use crate::cpu::arch::{
     inb, outb
 };
 
