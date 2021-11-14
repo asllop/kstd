@@ -30,7 +30,8 @@ use std::{
 };
 
 #[no_mangle]
-pub extern "C" fn _start() -> ! {
+extern "C"
+fn _start() -> ! {
     thek::cpu::init();
     small_allocs_mem();
     thek::devices::init_devices();

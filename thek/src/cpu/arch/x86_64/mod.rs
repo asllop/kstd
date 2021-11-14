@@ -1,20 +1,48 @@
 //! x86_64 CPU handling.
 
-use x86_64::structures::{
-    idt::{
-        InterruptDescriptorTable, InterruptStackFrame
+use x86_64::{
+    structures::{
+        idt::{
+            InterruptDescriptorTable, InterruptStackFrame
+        },
+        gdt::{
+            GlobalDescriptorTable, Descriptor
+        }
+    },
+    // instructions::{
+    //     tables::load_tss
+    // },
+    registers::segmentation::{
+        Segment, CS
     }
 };
 use crate::sys::{
     KMutex
 };
 
-/// Initialize ints, memory segments, etc.
+/// Initialize ints, cpu structures, etc.
 pub fn init() {
+    init_gdt();
     init_ints();
 }
 
-/// Init x86_64 essential interrupts.
+// Init GDT.
+fn init_gdt() {
+    //TODO: create TSS
+    let mut gdt = GDT.acquire();
+    let code_selector = gdt.add_entry(Descriptor::kernel_code_segment());
+    // let tss_selector = gdt.add_entry(Descriptor::tss_segment(&TSS));
+    // Load GDT
+    unsafe {
+        gdt.load_unsafe();
+        CS::set_reg(code_selector);
+        //load_tss(tss_selector);
+    }
+}
+
+static GDT: KMutex<GlobalDescriptorTable> = KMutex::new(GlobalDescriptorTable::new());
+
+// Init essential interrupts.
 fn init_ints() {
     let mut idt = IDT.acquire();
     // Set double fault interrupt handler
@@ -51,7 +79,7 @@ pub fn outb(port: u16, data: u8) {
     }
 }
 
-/// Halt
+/// Halt the system.
 pub fn halt() {
     unsafe {
         asm!("cli");
