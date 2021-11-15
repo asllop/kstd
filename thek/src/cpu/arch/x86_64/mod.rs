@@ -16,14 +16,20 @@ use x86_64::{
         Segment, CS
     }
 };
-use crate::sys::{
-    KMutex
-};
+use pic8259::ChainedPics;
+use crate::sys::KMutex;
 
 /// Initialize ints, cpu structures, etc.
 pub fn init() {
     init_gdt();
-    init_ints();
+    init_idt();
+    init_pic();
+    setup_timer();
+}
+
+/// Enable interrupts, timers, etc.
+pub fn start() {
+    unsafe { asm!("sti"); }
 }
 
 // Init GDT.
@@ -43,9 +49,10 @@ fn init_gdt() {
 static GDT: KMutex<GlobalDescriptorTable> = KMutex::new(GlobalDescriptorTable::new());
 
 // Init essential interrupts.
-fn init_ints() {
+fn init_idt() {
     let mut idt = IDT.acquire();
     // Set double fault interrupt handler
+    //TODO: set a different stack for this handler
     idt.double_fault.set_handler_fn(double_fault_int_handler);
     // Load IDT
     unsafe {
@@ -60,9 +67,50 @@ fn double_fault_int_handler(stack_frame: InterruptStackFrame, error_code: u64) -
 
 static IDT: KMutex<InterruptDescriptorTable> = KMutex::new(InterruptDescriptorTable::new());
 
-//TODO: set timer imterrupt and create a task switcher
+#[repr(u8)]
+enum PicInt {
+    Timer = PIC_1_OFFSET + 0,
+}
 
+fn init_pic() {
+    unsafe {
+        PICS.acquire().initialize();
+    }
+    let mut idt = IDT.acquire();
+    idt[PicInt::Timer as usize].set_handler_fn(timer_int_handler);
+    unsafe {
+        idt.load_unsafe();
+    }
+}
 
+const PIC_1_OFFSET: u8 = 32;
+const PIC_2_OFFSET: u8 = PIC_1_OFFSET + 8;
+
+static PICS: KMutex<ChainedPics> = KMutex::new(
+    unsafe {
+        ChainedPics::new(PIC_1_OFFSET, PIC_2_OFFSET)
+    }
+);
+
+extern "x86-interrupt"
+fn timer_int_handler(_stack_frame: InterruptStackFrame) {
+    //thek_dbg!("Timer!");
+    unsafe {
+        PICS.acquire().notify_end_of_interrupt(PicInt::Timer as u8);
+    }
+}
+
+fn setup_timer() {
+    // Set: Channel 0, lobyte/hibyte, Mode 2, Binary
+    let cmd: u8 = 0b_00_11_010_0;
+    outb(0x43, cmd);
+    // Set freq divisor (lobyte, hibyte)
+    let divisor: u16 = 5000;
+    outb(0x40, (divisor & 0xFF) as u8);
+    outb(0x40, ((divisor >> 8) & 0xFF) as u8);
+}
+
+#[inline]
 /// Input byte from port
 pub fn inb(port: u16) -> u8 {
     let r: u8;
@@ -72,6 +120,7 @@ pub fn inb(port: u16) -> u8 {
     r
 }
 
+#[inline]
 /// Output byte to port
 pub fn outb(port: u16, data: u8) {
     unsafe {
@@ -86,3 +135,10 @@ pub fn halt() {
         asm!("hlt");
     }
 }
+
+/* TODO:
+Trick to check stack integrity and avoid overflow in No Mem Protection systems:
+- Create a stack that is bigger than the required, let's say N bytes more. We call this extra bytes the sanger zone.
+- Count the time needed by the current CPU to push N bytes to stack (using a recursion func call), and use this as the switching period.
+- On everty task switch, check the stack, if it's in the danger zone, abort the task.
+*/

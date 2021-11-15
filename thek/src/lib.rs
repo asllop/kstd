@@ -160,6 +160,6 @@ fn panic(info: &PanicInfo) -> ! {
     }
 
     loop {
-        cpu::arch::halt();
+        cpu::halt();
     }
 }

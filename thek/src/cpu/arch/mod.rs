@@ -3,6 +3,7 @@
 //! This module must provide, at least, the following public symbols:
 //! 
 //! `fn init()`
+//! `fn start()`
 //! `fn halt()`
 
 #[cfg(feature = "pc64")]

@@ -8,9 +8,9 @@ use thek::{
             MemBlockSet,
         }
     },
-    // devices::{
-    //     self
-    // },
+    devices::{
+        self
+    },
     devices::text::ansi::AnsiColor,
     controllers::{
         stdout::StdoutController,
@@ -33,22 +33,13 @@ use std::{
 extern "C"
 fn _start() -> ! {
     thek::cpu::init();
-    small_allocs_mem();
+    thek::mem::small();
     thek::devices::init_devices();
+    thek::cpu::start();
 
     main();
     print!(".END.");
     loop {}
-}
-
-/// Setup memory schema optimized for small allocations
-fn small_allocs_mem() {
-    thek::mem::init::setup_mem(&[
-        (256, 80),              // 80% of mem in segments of 256Bytes
-        (1024, 10),             // 10% of mem in segments of 1K
-        (usize::MAX - 1, 5),    // Remaining 10% in two segments
-        (usize::MAX, 5)
-    ]);
 }
 
 /*
@@ -57,17 +48,6 @@ TODO: create tests for mem
 - Check if segments are correctly selected depending on requiered size.
 - Check that blocks are not overlaping.
 */
-
-fn _main() {
-    println!("Hola");
-    println!();
-    println!("Nom\tGen\tEdat");
-    println!("---------------------");
-    println!("Andreu\tM\t37");
-    println!("Blanca\tF\t36");
-    println!("Mar\tF\t2");
-    println!();
-}
 
 fn main() {
     println!("Hola!");
@@ -141,18 +121,18 @@ fn main() {
     // Print a backspace to remove the 'A'
     print!("\nHOLA\x08");
     println!();
-
-    /*
+    
     // Using serial port device directly
     let device = devices::get_port_device("SER1").expect("Port SER1 not found");
     let port = device.unwrap_port();
+    /*
     port.write('H' as u8).unwrap_or_default();
     port.write('o' as u8).unwrap_or_default();
     port.write('l' as u8).unwrap_or_default();
     port.write('a' as u8).unwrap_or_default();
     port.write('!' as u8).unwrap_or_default();
     port.write('\n' as u8).unwrap_or_default();
-
+    */
     print!("Enter string: ");
     let mut vec = Vec::<u8>::new();
     loop {
@@ -166,7 +146,6 @@ fn main() {
     println!("Input = {}", input);
     // unlock port device
     core::mem::drop(port);
-    */
 
     // Using serial port device through a controller
 
