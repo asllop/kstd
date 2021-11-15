@@ -120,6 +120,8 @@ fn setup_timer() {
 /// Set a function to be executed on each timer interrupt.
 /// 
 /// The handler function takes one argument, that is the timer frequency in Hz.
+/// 
+/// WARNING: Never use mutex that can be used somewhere else within the timer handler, or you will likely cause a deadlock.
 pub fn set_timer_handler(func: fn(f64)) {
     let mut th = TIMER_HANDLER.acquire();
     *th = func;

@@ -12,7 +12,11 @@ use thek::{controllers::{
         layout::{
             MemBlockSet,
         }
-    }, sys::KMutex};
+    },
+    sys::{
+        KMutex
+    }
+};
 
 use core::default::Default;
 use std::{
@@ -181,6 +185,11 @@ fn main() {
     }
 
     thek::cpu::time::set_handler(timer_handler);
+
+    /*
+    loop {
+        println!("Wait deadlock!");
+    }*/
 
     //_fail_unwrap();
     //_fail_oom_big_allocs();
