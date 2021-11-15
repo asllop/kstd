@@ -170,9 +170,11 @@ fn main() {
 
     println!("Llista =\n{:#?}", llista);
 
+    let mut i = 0usize;
     loop {
         thek::cpu::time::sleep(1000);
-        println!("1 more second!");
+        println!("1 more second! {}", i);
+        i += 1;
     }
 
     /*

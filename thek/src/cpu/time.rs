@@ -53,10 +53,10 @@ fn internal_timer_handler() {
 /// Sleeps for some time in milliseconds.
 pub fn sleep(delay_ms: usize) {
     let delay_secs = delay_ms as f64 / 1000.0;
-    let initial_ticks =  TICKS.load(Ordering::Relaxed);
+    let initial_ticks =  TICKS.load(Ordering::SeqCst);
     let initial_secs = initial_ticks as f64 * TIMER_PERIOD_SEC;
     loop {
-        let current_ticks = TICKS.load(Ordering::Relaxed); 
+        let current_ticks = TICKS.load(Ordering::SeqCst); 
         if current_ticks >= initial_ticks {
             let current_secs = current_ticks as f64 * TIMER_PERIOD_SEC;
             if current_secs - initial_secs >= delay_secs {
