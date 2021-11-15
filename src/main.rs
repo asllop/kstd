@@ -1,23 +1,18 @@
 #![no_main]
 #![no_std]
 
-use thek::{
-    mem::{
+use thek::{controllers::{
+        stdout::StdoutController,
+        port::PortController,
+        text::TextController
+    }, devices::{
+        self
+    }, devices::text::ansi::AnsiColor, mem::{
         arch::raw_mem,
         layout::{
             MemBlockSet,
         }
-    },
-    devices::{
-        self
-    },
-    devices::text::ansi::AnsiColor,
-    controllers::{
-        stdout::StdoutController,
-        port::PortController,
-        text::TextController
-    }
-};
+    }, sys::KMutex};
 
 use core::default::Default;
 use std::{
@@ -173,12 +168,27 @@ fn main() {
     let llista = vec!(map_1, map_2, map_3);
 
     println!("Llista =\n{:#?}", llista);
+    
+    fn timer_handler(freq: f64) {
+        let mut time = TIME.acquire();
+        if *time > 1.0 {
+            *time = 0.0;
+            println!("1 more second!");
+        }
+        else {
+            *time += 1.0 / freq;
+        }
+    }
+
+    thek::cpu::time::set_handler(timer_handler);
 
     //_fail_unwrap();
     //_fail_oom_big_allocs();
     //_fail_oom_small_allocs();
     //_force_fault();
 }
+
+static TIME: KMutex<f64> = KMutex::new(0.0);
 
 fn print_count(n: i32) {
     for i in 0..n {

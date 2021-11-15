@@ -94,21 +94,38 @@ static PICS: KMutex<ChainedPics> = KMutex::new(
 
 extern "x86-interrupt"
 fn timer_int_handler(_stack_frame: InterruptStackFrame) {
-    //thek_dbg!("Timer!");
+    let th = TIMER_HANDLER.acquire();
+    (*th)(TIMER_FREQ_HZ);
     unsafe {
         PICS.acquire().notify_end_of_interrupt(PicInt::Timer as u8);
     }
 }
+
+// Frequency divisor.
+const FREQ_DIVISOR: u16 = 5000;
+
+// Timer frequency in Hz.
+const TIMER_FREQ_HZ: f64 = 1193181.6666 / FREQ_DIVISOR as f64;
 
 fn setup_timer() {
     // Set: Channel 0, lobyte/hibyte, Mode 2, Binary
     let cmd: u8 = 0b_00_11_010_0;
     outb(0x43, cmd);
     // Set freq divisor (lobyte, hibyte)
-    let divisor: u16 = 5000;
+    let divisor: u16 = FREQ_DIVISOR;
     outb(0x40, (divisor & 0xFF) as u8);
     outb(0x40, ((divisor >> 8) & 0xFF) as u8);
 }
+
+/// Set a function to be executed on each timer interrupt.
+/// 
+/// The handler function takes one argument, that is the timer frequency in Hz.
+pub fn set_timer_handler(func: fn(f64)) {
+    let mut th = TIMER_HANDLER.acquire();
+    *th = func;
+}
+
+static TIMER_HANDLER: KMutex<fn(f64)> = KMutex::new(|_| {});
 
 #[inline]
 /// Input byte from port
