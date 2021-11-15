@@ -9,9 +9,10 @@ use x86_64::{
             GlobalDescriptorTable, Descriptor
         }
     },
-    // instructions::{
-    //     tables::load_tss
-    // },
+    instructions::{
+        //tables::load_tss
+        interrupts::are_enabled
+    },
     registers::segmentation::{
         Segment, CS
     }
@@ -95,7 +96,7 @@ static PICS: KMutex<ChainedPics> = KMutex::new(
 extern "x86-interrupt"
 fn timer_int_handler(_stack_frame: InterruptStackFrame) {
     let th = TIMER_HANDLER.acquire();
-    (*th)(TIMER_FREQ_HZ);
+    (*th)();
     unsafe {
         PICS.acquire().notify_end_of_interrupt(PicInt::Timer as u8);
     }
@@ -104,8 +105,8 @@ fn timer_int_handler(_stack_frame: InterruptStackFrame) {
 // Frequency divisor.
 const FREQ_DIVISOR: u16 = 5000;
 
-// Timer frequency in Hz.
-const TIMER_FREQ_HZ: f64 = 1193181.6666 / FREQ_DIVISOR as f64;
+/// Timer frequency in Hz.
+pub const TIMER_FREQ_HZ: f64 = 1193181.6666 / FREQ_DIVISOR as f64;
 
 fn setup_timer() {
     // Set: Channel 0, lobyte/hibyte, Mode 2, Binary
@@ -118,16 +119,12 @@ fn setup_timer() {
 }
 
 /// Set a function to be executed on each timer interrupt.
-/// 
-/// The handler function takes one argument, that is the timer frequency in Hz.
-/// 
-/// WARNING: Never use mutex that can be used somewhere else within the timer handler, or you will likely cause a deadlock.
-pub fn set_timer_handler(func: fn(f64)) {
+pub fn set_timer_handler(func: fn()) {
     let mut th = TIMER_HANDLER.acquire();
     *th = func;
 }
 
-static TIMER_HANDLER: KMutex<fn(f64)> = KMutex::new(|_| {});
+static TIMER_HANDLER: KMutex<fn()> = KMutex::new(|| {});
 
 #[inline]
 /// Input byte from port
@@ -147,12 +144,35 @@ pub fn outb(port: u16, data: u8) {
     }
 }
 
+#[inline]
 /// Halt the system.
 pub fn halt() {
     unsafe {
         asm!("cli");
         asm!("hlt");
     }
+}
+
+#[inline]
+/// Disable interrupts.
+pub fn disable_ints() {
+    unsafe {
+        asm!("cli");
+    }
+}
+
+#[inline]
+/// Enable interrupts.
+pub fn enable_ints() {
+    unsafe {
+        asm!("sti");
+    }
+}
+
+#[inline]
+/// Check if interrupts are enabled.
+pub fn check_ints() -> bool {
+    are_enabled()
 }
 
 /* TODO:

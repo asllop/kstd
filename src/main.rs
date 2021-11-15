@@ -12,9 +12,6 @@ use thek::{controllers::{
         layout::{
             MemBlockSet,
         }
-    },
-    sys::{
-        KMutex
     }
 };
 
@@ -132,17 +129,17 @@ fn main() {
     port.write('!' as u8).unwrap_or_default();
     port.write('\n' as u8).unwrap_or_default();
     */
-    print!("Enter string: ");
-    let mut vec = Vec::<u8>::new();
-    loop {
-        let ch = port.read().unwrap_or_default();
-        if ch == '\n' as u8 || ch == 0x0Du8 {
-            break;
-        }
-        vec.push(ch);
-    }
-    let input = String::from_utf8(vec).unwrap();
-    println!("Input = {}", input);
+    // print!("Enter string: ");
+    // let mut vec = Vec::<u8>::new();
+    // loop {
+    //     let ch = port.read().unwrap_or_default();
+    //     if ch == '\n' as u8 || ch == 0x0Du8 {
+    //         break;
+    //     }
+    //     vec.push(ch);
+    // }
+    // let input = String::from_utf8(vec).unwrap();
+    // println!("Input = {}", input);
     // unlock port device
     core::mem::drop(port);
 
@@ -172,19 +169,11 @@ fn main() {
     let llista = vec!(map_1, map_2, map_3);
 
     println!("Llista =\n{:#?}", llista);
-    
-    fn timer_handler(freq: f64) {
-        let mut time = TIME.acquire();
-        if *time > 1.0 {
-            *time = 0.0;
-            println!("1 more second!");
-        }
-        else {
-            *time += 1.0 / freq;
-        }
-    }
 
-    thek::cpu::time::set_handler(timer_handler);
+    loop {
+        thek::cpu::time::sleep(1000);
+        println!("1 more second!");
+    }
 
     /*
     loop {
@@ -196,8 +185,6 @@ fn main() {
     //_fail_oom_small_allocs();
     //_force_fault();
 }
-
-static TIME: KMutex<f64> = KMutex::new(0.0);
 
 fn print_count(n: i32) {
     for i in 0..n {
