@@ -29,7 +29,7 @@ use std::{
 extern "C"
 fn _start() -> ! {
     thek::cpu::init_cpu();
-    thek::mem::small_schema();
+    thek::mem::init_small_schema();
     thek::devices::init_devices();
     thek::task::init_task();
     thek::cpu::start_cpu();

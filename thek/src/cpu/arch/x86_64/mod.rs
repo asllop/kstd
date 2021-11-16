@@ -1,6 +1,7 @@
 //! x86_64 CPU handling.
 
 use x86_64::{
+    VirtAddr,
     structures::{
         idt::{
             InterruptDescriptorTable, InterruptStackFrame
@@ -78,8 +79,8 @@ fn init_pic() {
         PICS.acquire().initialize();
     }
     let mut idt = IDT.acquire();
-    idt[PicInt::Timer as usize].set_handler_fn(timer_int_handler);
     unsafe {
+        idt[PicInt::Timer as usize].set_handler_addr(VirtAddr::new(timer_int_handler as u64));
         idt.load_unsafe();
     }
 }
@@ -93,13 +94,59 @@ static PICS: KMutex<ChainedPics> = KMutex::new(
     }
 );
 
-extern "x86-interrupt"
-fn timer_int_handler(_stack_frame: InterruptStackFrame) {
+#[inline(never)]
+extern "C"
+fn timer_isr() {
     let th = TIMER_HANDLER.acquire();
     (*th)();
     unsafe {
         PICS.acquire().notify_end_of_interrupt(PicInt::Timer as u8);
     }
+}
+
+#[naked]
+unsafe extern "C" fn timer_int_handler() {
+    asm!("
+        push rbp
+        push r15
+        push r14
+        push r13
+        push r12
+        push r11
+        push r10
+        push r9
+        push r8
+        push rsi
+        push rdi
+        push rdx
+        push rcx
+        push rbx
+        push rax
+        mov rsi, rsp
+        push rsi
+        cli
+
+        call {}
+
+        sti
+        add rsp, 8
+        pop rax
+        pop rbx
+        pop rcx
+        pop rdx
+        pop rdi
+        pop rsi
+        pop r8
+        pop r9
+        pop r10
+        pop r11
+        pop r12
+        pop r13
+        pop r14
+        pop r15
+        pop rbp
+        iretq
+    ", sym timer_isr, options(noreturn));
 }
 
 // Frequency divisor (1 millisecond resolution).

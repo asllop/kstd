@@ -70,6 +70,7 @@
 #![no_std]
 #![feature(asm)]
 #![feature(alloc_error_handler)]
+#![feature(naked_functions)]
 #![cfg_attr(
     feature = "pc64",
     feature(abi_x86_interrupt)
