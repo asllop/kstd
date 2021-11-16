@@ -94,9 +94,36 @@ static PICS: KMutex<ChainedPics> = KMutex::new(
     }
 );
 
+#[repr(C)]
+/// Stored register on every interrupt.
+pub struct StackFrame {
+    // Registers pushed by the ISR
+    pub rax: u64,
+    pub rbx: u64,
+    pub rcx: u64,
+    pub rdx: u64,
+    pub rdi: u64,
+    pub rsi: u64,
+    pub r8: u64,
+    pub r9: u64,
+    pub r10: u64,
+    pub r11: u64,
+    pub r12: u64,
+    pub r13: u64,
+    pub r14: u64,
+    pub r15: u64,
+    pub rbp: u64,
+    // Interrupt Stack Frame
+    pub rip: u64,
+    pub cs: u64,
+    pub rflags: u64,
+    pub rsp: u64,
+    pub ss: u64
+}
+
 #[inline(never)]
 extern "C"
-fn timer_isr() {
+fn timer_isr(_stack_frame: &StackFrame) {
     let th = TIMER_HANDLER.acquire();
     (*th)();
     unsafe {
@@ -108,6 +135,8 @@ fn timer_isr() {
 #[naked]
 unsafe extern "C" fn timer_int_handler() {
     asm!("
+        # Clear ints and store all registers (the ones not already stored in the interrupt stack frame).
+        cli
         push rbp
         push r15
         push r14
@@ -123,11 +152,12 @@ unsafe extern "C" fn timer_int_handler() {
         push rcx
         push rbx
         push rax
-        cli
 
+        # Call the actual ISR, passing as argument (RDI) a pointer to the saved registers (RSP)
+        mov rdi, rsp
         call {}
 
-        sti
+        # Recover registers, set interrupts and return.
         pop rax
         pop rbx
         pop rcx
@@ -143,6 +173,7 @@ unsafe extern "C" fn timer_int_handler() {
         pop r14
         pop r15
         pop rbp
+        sti
         iretq
     ", sym timer_isr, options(noreturn));
 }

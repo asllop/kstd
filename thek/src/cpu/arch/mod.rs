@@ -10,6 +10,7 @@
 //! - `fn check_ints() -> bool`
 //! - `fn set_timer_handler(func: fn())`
 //! - `const TIMER_FREQ_HZ: u64`
+//! - `struct StackFrame`
 
 #[cfg(feature = "pc64")]
 mod x86_64;
