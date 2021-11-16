@@ -67,13 +67,6 @@
 //! - Implement a PCI driver and...
 //! - Implement USB driver (based on LibUSB).
 
-/*
-Crates tp simplify x86 low level handling:
-
-https://docs.rs/x86_64/
-https://docs.rs/x86/
-*/
-
 #![no_std]
 #![feature(asm)]
 #![feature(alloc_error_handler)]
@@ -91,6 +84,8 @@ pub mod sys;
 pub mod mem;
 
 pub mod cpu;
+
+pub mod task;
 
 //#[macro_use]
 extern crate alloc;
@@ -143,7 +138,7 @@ macro_rules! thek_dbg {
 /// Panic handler.
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
-    //TODO: stop task scheduling, once we have multitasking
+    cpu::disable_ints();
     let dev_id = "CON1";
     if let Some(device) = devices::get_text_device(dev_id) {
         if let Device::Text(txt_dev) = device {

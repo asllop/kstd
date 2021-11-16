@@ -2,7 +2,7 @@
 //! 
 //! This module must provide, at least, the following public symbols:
 //! 
-//! - `fn init()`
+//! - `fn init_arch()`
 //! - `fn start()`
 //! - `fn halt()`
 //! - `fn disable_ints()` 

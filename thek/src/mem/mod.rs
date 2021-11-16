@@ -9,7 +9,7 @@ pub mod init;
 pub mod arch;
 
 /// Initialize a default memory schema optimized for small allocations.
-pub fn small() {
+pub fn small_schema() {
     init::setup_mem(&[
         (256, 80),              // 80% of mem in segments of 256Bytes
         (1024, 10),             // 10% of mem in segments of 1K
@@ -19,7 +19,7 @@ pub fn small() {
 }
 
 /// Initialize a default memory schema optimized for big allocations.
-pub fn big() {
+pub fn big_schema() {
     init::setup_mem(&[
         (4*1024, 10),           // 10% of mem in segments of 4K
         (128*1024, 80),         // 80% of mem in segments of 128K

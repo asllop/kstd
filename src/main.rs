@@ -28,10 +28,11 @@ use std::{
 #[no_mangle]
 extern "C"
 fn _start() -> ! {
-    thek::cpu::init();
-    thek::mem::small();
+    thek::cpu::init_cpu();
+    thek::mem::small_schema();
     thek::devices::init_devices();
-    thek::cpu::start();
+    thek::task::init_task();
+    thek::cpu::start_cpu();
 
     main();
     print!(".END.");

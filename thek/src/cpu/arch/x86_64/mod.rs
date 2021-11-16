@@ -21,7 +21,7 @@ use pic8259::ChainedPics;
 use crate::sys::KMutex;
 
 /// Initialize ints, cpu structures, etc.
-pub fn init() {
+pub fn init_arch() {
     init_gdt();
     init_idt();
     init_pic();
@@ -29,8 +29,8 @@ pub fn init() {
 }
 
 /// Enable interrupts, timers, etc.
-pub fn start() {
-    unsafe { asm!("sti"); }
+pub fn start_arch() {
+    enable_ints();
 }
 
 // Init GDT.
