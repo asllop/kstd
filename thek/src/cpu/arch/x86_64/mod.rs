@@ -94,6 +94,7 @@ static PICS: KMutex<ChainedPics> = KMutex::new(
     }
 );
 
+#[derive(Clone)]
 #[repr(C)]
 /// Stored register on every interrupt.
 pub struct StackFrame {
@@ -123,9 +124,9 @@ pub struct StackFrame {
 
 #[inline(never)]
 extern "C"
-fn timer_isr(_stack_frame: &StackFrame) {
+fn timer_isr(stack_frame: &StackFrame) {
     let th = TIMER_HANDLER.acquire();
-    (*th)();
+    (*th)(stack_frame);
     unsafe {
         PICS.acquire().notify_end_of_interrupt(PicInt::Timer as u8);
     }
@@ -195,12 +196,12 @@ fn setup_timer() {
 }
 
 /// Set a function to be executed on each timer interrupt.
-pub fn set_timer_handler(func: fn()) {
+pub fn set_timer_handler(func: fn(&StackFrame)) {
     let mut th = TIMER_HANDLER.acquire();
     *th = func;
 }
 
-static TIMER_HANDLER: KMutex<fn()> = KMutex::new(|| {});
+static TIMER_HANDLER: KMutex<fn(&StackFrame)> = KMutex::new(|_| {});
 
 #[inline]
 /// Input byte from port
@@ -224,8 +225,10 @@ pub fn outb(port: u16, data: u8) {
 /// Halt the system.
 pub fn halt() {
     unsafe {
-        asm!("cli");
-        asm!("hlt");
+        asm!("
+            cli
+            hlt
+        ");
     }
 }
 

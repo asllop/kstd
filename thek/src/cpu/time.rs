@@ -5,7 +5,7 @@ use core::sync::atomic::{
 };
 use crate::sys::KMutex;
 use super::arch::{
-    set_timer_handler, TIMER_FREQ_HZ
+    set_timer_handler, TIMER_FREQ_HZ, StackFrame
 };
 
 /// Init timer handlers.
@@ -21,7 +21,7 @@ pub fn init_time() {
 /// *WARNINGS*:
 /// - Never use mutex that can be used somewhere else within the timer handler, or you will likely cause a deadlock.
 /// - The system will remain locked until all handler functions return.
-pub fn register_handler(func: fn(), index: usize) -> bool {
+pub fn register_handler(func: fn(&StackFrame), index: usize) -> bool {
     if index >= MAX_HANDLERS {
         return false;
     }
@@ -37,15 +37,15 @@ pub fn register_handler(func: fn(), index: usize) -> bool {
 }
 
 const MAX_HANDLERS: usize = 4;
-static TIMER_HANDLERS: KMutex<[fn(); MAX_HANDLERS]> = KMutex::new([|| {}; MAX_HANDLERS]);
+static TIMER_HANDLERS: KMutex<[fn(&StackFrame); MAX_HANDLERS]> = KMutex::new([|_| {}; MAX_HANDLERS]);
 
 /// Timer period in seconds.
 pub const TIMER_PERIOD_SEC: f64 = 1.0 / TIMER_FREQ_HZ;
 
-fn internal_timer_handler() {
+fn internal_timer_handler(stack_frame: &StackFrame) {
     let time_handlers = TIMER_HANDLERS.acquire();
     for func in *time_handlers {
-        func();
+        func(stack_frame);
     }
     TICKS.fetch_add(1, Ordering::SeqCst);
 }

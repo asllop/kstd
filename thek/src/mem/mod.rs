@@ -8,6 +8,9 @@ pub mod init;
 
 pub mod arch;
 
+mod kbox;
+pub use kbox::*;
+
 /// Initialize a default memory schema optimized for small allocations.
 pub fn init_small_schema() {
     init::setup_mem(&[
