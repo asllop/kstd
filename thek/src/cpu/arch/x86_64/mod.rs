@@ -104,6 +104,7 @@ fn timer_isr() {
     }
 }
 
+//TODO: save stack frame(5 registers) + scratch registers(15 registers) = 20 registers * 8 bytes/register = 160 bytes
 #[naked]
 unsafe extern "C" fn timer_int_handler() {
     asm!("
@@ -122,14 +123,11 @@ unsafe extern "C" fn timer_int_handler() {
         push rcx
         push rbx
         push rax
-        mov rsi, rsp
-        push rsi
         cli
 
         call {}
 
         sti
-        add rsp, 8
         pop rax
         pop rbx
         pop rcx
