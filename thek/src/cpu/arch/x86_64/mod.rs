@@ -102,8 +102,8 @@ fn timer_int_handler(_stack_frame: InterruptStackFrame) {
     }
 }
 
-// Frequency divisor.
-const FREQ_DIVISOR: u16 = 5000;
+// Frequency divisor (1 millisecond resolution).
+const FREQ_DIVISOR: u16 = 1200;
 
 /// Timer frequency in Hz.
 pub const TIMER_FREQ_HZ: f64 = 1193181.6666 / FREQ_DIVISOR as f64;
