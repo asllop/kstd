@@ -173,7 +173,7 @@ fn main() {
 
     let mut i = 0usize;
     loop {
-        thek::cpu::time::sleep(1000);
+        thek::task::sleep(1000);
         println!("1 more second! {}", i);
         i += 1;
     }
