@@ -132,7 +132,7 @@ fn timer_isr(stack_frame: &StackFrame) {
     }
 }
 
-//TODO: save stack frame(5 registers) + scratch registers(15 registers) = 20 registers * 8 bytes/register = 160 bytes
+// Save stack frame(5 registers) + scratch registers(15 registers) = 20 registers * 8 bytes/register = 160 bytes
 #[naked]
 unsafe extern "C" fn timer_int_handler() {
     asm!("
@@ -154,7 +154,7 @@ unsafe extern "C" fn timer_int_handler() {
         push rbx
         push rax
 
-        # Call the actual ISR, passing as argument (RDI) a pointer to the saved registers (RSP)
+        # Call the actual ISR, passing as argument (RDI) a pointer to the stack address (RSP)
         mov rdi, rsp
         call {}
 
@@ -174,7 +174,6 @@ unsafe extern "C" fn timer_int_handler() {
         pop r14
         pop r15
         pop rbp
-        sti
         iretq
     ", sym timer_isr, options(noreturn));
 }
