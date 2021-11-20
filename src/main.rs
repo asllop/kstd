@@ -34,7 +34,10 @@ fn _start() -> ! {
     thek::task::init_task();
     thek::cpu::start_cpu();
 
-    main();
+    thek::task::start("main", None, main);
+    thek::task::enable_scheduling();
+    
+    //main();
     print!(".END.");
     loop {}
 }

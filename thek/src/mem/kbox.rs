@@ -4,6 +4,7 @@ use core::{
 };
 use super::arch::ALIGN;
 
+#[derive(Debug)]
 /// A box that allocates exact segment sizes.
 pub struct KBox {
     buffer: *mut u8,
@@ -35,12 +36,12 @@ impl KBox {
     }
 
     /// Bottom address of the allocated buffer.
-    pub fn bottom(&self) -> *const u8 {
-        self.buffer as *const u8
+    pub fn bottom(&self) -> *mut u8 {
+        self.buffer
     }
 
     /// Top address of the allocated buffer.
-    pub fn top(&self) -> *const u8 {
+    pub fn top(&self) -> *mut u8 {
         unsafe {
             self.buffer.add(self.layout.size())
         }

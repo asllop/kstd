@@ -4,7 +4,7 @@ use x86_64::{
     VirtAddr,
     structures::{
         idt::{
-            InterruptDescriptorTable, InterruptStackFrame
+            InterruptDescriptorTable, InterruptStackFrame, PageFaultErrorCode
         },
         gdt::{
             GlobalDescriptorTable, Descriptor
@@ -19,7 +19,10 @@ use x86_64::{
     }
 };
 use pic8259::ChainedPics;
-use crate::sys::KMutex;
+use crate::{sys::KMutex, thek_dbg};
+use core::{
+    ptr, mem
+};
 
 /// Initialize ints, cpu structures, etc.
 pub fn init_arch() {
@@ -56,6 +59,9 @@ fn init_idt() {
     // Set double fault interrupt handler
     //TODO: set a different stack for this handler
     idt.double_fault.set_handler_fn(double_fault_int_handler);
+    idt.stack_segment_fault.set_handler_fn(stack_segment_fault_int_handler);
+    idt.page_fault.set_handler_fn(page_fault_int_handler);
+    idt.segment_not_present.set_handler_fn(seg_not_pres_int_handler);
     // Load IDT
     unsafe {
         idt.load_unsafe();
@@ -65,6 +71,21 @@ fn init_idt() {
 extern "x86-interrupt"
 fn double_fault_int_handler(stack_frame: InterruptStackFrame, error_code: u64) -> ! {
     panic!("DOUBLE FAULT = {} , {:#?}", error_code, stack_frame);
+}
+
+extern "x86-interrupt"
+fn stack_segment_fault_int_handler(stack_frame: InterruptStackFrame, error_code: u64) {
+    panic!("STACK SEGMENT FAULT = {} , {:#?}", error_code, stack_frame);
+}
+
+extern "x86-interrupt"
+fn page_fault_int_handler(stack_frame: InterruptStackFrame, error_code: PageFaultErrorCode) {
+    panic!("PAGE FAULT = {:#?} , {:#?}", error_code, stack_frame);
+}
+
+extern "x86-interrupt"
+fn seg_not_pres_int_handler(stack_frame: InterruptStackFrame, error_code: u64) {
+    panic!("SEGMENT NOT PRESENT = {} , {:#?}", error_code, stack_frame);
 }
 
 static IDT: KMutex<InterruptDescriptorTable> = KMutex::new(InterruptDescriptorTable::new());
@@ -94,7 +115,7 @@ static PICS: KMutex<ChainedPics> = KMutex::new(
     }
 );
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[repr(C)]
 /// Stored register on every interrupt.
 pub struct StackFrame {
@@ -122,13 +143,49 @@ pub struct StackFrame {
     pub ss: u64
 }
 
+impl StackFrame {
+    pub fn new_task_stack(&self, func: fn(), stack_pointer: *mut u8) -> Self {
+        let mut stack_frame = self.clone();
+        stack_frame.rax = 0;
+        stack_frame.rbx = 0;
+        stack_frame.rcx = 0;
+        stack_frame.rdx = 0;
+        stack_frame.rdi = 0;
+        stack_frame.rsi = 0;
+        stack_frame.r8 = 0;
+        stack_frame.r9 = 0;
+        stack_frame.r10 = 0;
+        stack_frame.r11 = 0;
+        stack_frame.r12 = 0;
+        stack_frame.r13 = 0;
+        stack_frame.r14 = 0;
+        stack_frame.r15 = 0;
+        stack_frame.rbp = 0;
+
+        stack_frame.rflags = 0xFFFFFFFFFFFFFFFF;
+        stack_frame.rip = unsafe { mem::transmute(func) };
+        stack_frame.rsp = unsafe { mem::transmute(stack_pointer) };
+
+        stack_frame
+    }
+}
+
 #[inline(never)]
 extern "C"
-fn timer_isr(stack_frame: &StackFrame) {
+fn timer_isr(stack_frame: &StackFrame) -> *mut u8 {
     let th = TIMER_HANDLER.acquire();
-    (*th)(stack_frame);
+    let new_stack = (*th)(stack_frame);
     unsafe {
         PICS.acquire().notify_end_of_interrupt(PicInt::Timer as u8);
+    }
+    if new_stack != ptr::null_mut() {
+        thek_dbg!("New stack pointer", new_stack);
+        new_stack
+    }
+    else {
+        unsafe {
+            mem::transmute(stack_frame)
+        }
     }
 }
 
@@ -157,8 +214,10 @@ unsafe extern "C" fn timer_int_handler() {
         # Call the actual ISR, passing as argument (RDI) a pointer to the stack address (RSP)
         mov rdi, rsp
         call {}
+        # RAX contains the return value, the new stack pointer
+        mov rsp, rax
 
-        # Recover registers, set interrupts and return.
+        # Recover registers and return (interrupt flag is recovered by the IRETQ).
         pop rax
         pop rbx
         pop rcx
@@ -195,12 +254,12 @@ fn setup_timer() {
 }
 
 /// Set a function to be executed on each timer interrupt.
-pub fn set_timer_handler(func: fn(&StackFrame)) {
+pub fn set_timer_handler(func: fn(&StackFrame) -> *mut u8) {
     let mut th = TIMER_HANDLER.acquire();
     *th = func;
 }
 
-static TIMER_HANDLER: KMutex<fn(&StackFrame)> = KMutex::new(|_| {});
+static TIMER_HANDLER: KMutex<fn(&StackFrame) -> *mut u8> = KMutex::new(|_| { ptr::null_mut() });
 
 #[inline]
 /// Input byte from port
